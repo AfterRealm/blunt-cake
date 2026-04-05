@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Roast My Code — Evaluation Runner
+Blunt Cake — Evaluation Runner
 Runs test cases with and without the skill, judges assertions, produces a report.
 
 Usage:
@@ -208,7 +208,7 @@ Respond with ONLY valid JSON:
 
 def markdown_report(results, benchmark):
     lines = []
-    lines.append("# 🔥 Roast My Code — Eval Results")
+    lines.append("# 🔥 Blunt Cake — Eval Results")
     lines.append(f"*Iteration {benchmark['iteration']} — {benchmark['timestamp'][:10]}*\n")
 
     lines.append("## Scores")
@@ -242,7 +242,7 @@ def markdown_report(results, benchmark):
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Roast My Code Eval Runner")
+    parser = argparse.ArgumentParser(description="Blunt Cake Eval Runner")
     parser.add_argument("--markdown", "--md", action="store_true", help="Also output markdown report")
     args = parser.parse_args()
 

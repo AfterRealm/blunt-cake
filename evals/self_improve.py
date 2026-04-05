@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Roast My Code — Self-Improving Eval Loop
+Blunt Cake — Self-Improving Eval Loop
 Runs the eval, reads failures, proposes SKILL.md improvements, and tracks iterations.
 
 Usage:
@@ -178,7 +178,7 @@ Respond with ONLY valid JSON:
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="Roast My Code Self-Improvement Loop")
+    parser = argparse.ArgumentParser(description="Blunt Cake Self-Improvement Loop")
     parser.add_argument("--cycles", type=int, default=1, help="Number of improvement cycles")
     args = parser.parse_args()
 

@@ -1,8 +1,8 @@
-# 🔥 Roast My Code — a Claude Code Agent Skill
+# 🍰 Blunt Cake — a Claude Code Agent Skill
 
 Your code review called. It said it's tired of being boring.
 
-**Roast My Code** is an agent skill with four modes that cover everything from quick laughs to professional-grade analysis. Every roast is backed by a real finding. Every finding comes with a fix.
+**Blunt Cake** is an agent skill with four modes that cover everything from quick laughs to professional-grade analysis. Every roast is backed by a real finding. Every finding comes with a fix.
 
 ## Four modes
 
@@ -35,9 +35,9 @@ Ships with a self-improving eval loop. The skill runs tests, reads its own failu
 
 ## Install
 ```
-claude plugin add AfterRealm/roast-my-code
+claude plugin add AfterRealm/blunt-cake
 ```
 
-**GitHub:** https://github.com/AfterRealm/roast-my-code
+**GitHub:** https://github.com/AfterRealm/blunt-cake
 
 Your code's been talking behind your back. Time to find out what it's saying. 🔥
