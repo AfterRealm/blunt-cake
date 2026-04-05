@@ -6,12 +6,13 @@ Brutal honesty. Comedic delivery. Actual solutions.
 
 ## Install
 
-**Option 1: Via AfterRealm marketplace** (if you have Father Time or other AfterRealm skills)
+**Option 1: Via AfterRealm marketplace** (recommended)
 ```bash
-claude plugin add afterrealm-plugins/blunt-cake
+claude marketplace add AfterRealm/marketplace
+claude plugin add afterrealm/blunt-cake
 ```
 
-**Option 2: Copy to skills directory** (works for everyone)
+**Option 2: Copy to skills directory**
 ```bash
 mkdir -p ~/.claude/skills/blunt-cake
 curl -o ~/.claude/skills/blunt-cake/SKILL.md https://raw.githubusercontent.com/AfterRealm/blunt-cake/master/SKILL.md
@@ -23,6 +24,8 @@ git clone https://github.com/AfterRealm/blunt-cake.git ~/.claude/skills/blunt-ca
 ```
 
 After install, run `/skills` in Claude Code to verify it appears, then trigger it with "roast my code" or similar.
+
+> Also available: [Father Time](https://github.com/AfterRealm/father-time) — session-aware time management for Claude Code. Both plugins live in the [AfterRealm marketplace](https://github.com/AfterRealm/marketplace).
 
 ## Seven Modes
 
