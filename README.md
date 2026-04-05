@@ -27,7 +27,7 @@ After install, run `/skills` in Claude Code to verify it appears, then trigger i
 
 > Also available: [Father Time](https://github.com/AfterRealm/father-time) — session-aware time management for Claude Code. Both plugins live in the [AfterRealm marketplace](https://github.com/AfterRealm/marketplace).
 
-## Seven Modes
+## Eight Modes
 
 When triggered, the skill asks which mode you want — plus a personality:
 
@@ -41,8 +41,9 @@ When triggered, the skill asks which mode you want — plus a personality:
 5. Diff Roast 📝 — Roast a git diff
 6. Batter Battle 🆚 — Two files enter, one leaves
 7. Roast-a-thon 🏫 — Roast an entire project directory
+8. Roast Challenge 🎯🔥 — Coding challenge judged by Blunt Cake
 
-Pick a personality: 🧑‍🍳 Chef (default) · 👵 Disappointed Grandma · 😐 Passive-Aggressive PR Reviewer · 🎤 Simon Cowell · 🐕 Snoop Dogg · 🏴‍☠️ Pirate
+Pick a personality: 🧑‍🍳 Chef · 👵 Grandma · 😐 PR Reviewer · 🎤 Simon Cowell · 🐕 Snoop Dogg · 🏴‍☠️ Pirate · 🎨 Custom (create your own!)
 ```
 
 ### 🔥 Standard Roast
@@ -221,6 +222,27 @@ Community leaderboard! Submit your roast scores to `hall-of-fame/README.md`:
 - **Batter Battle Highlights** — best head-to-head matchups.
 
 Submit via PR or [GitHub Discussions](../../discussions).
+
+### 🎯🔥 Roast Challenge (NEW)
+Coding katas judged by Blunt Cake. Pick a challenge, build your solution, get roasted. Beat the target score to pass.
+
+5 built-in challenges:
+
+| Challenge | Target | What You Build |
+|-----------|:------:|---------------|
+| **Auth Gauntlet** 🔒 | 8/10 | Secure auth module from scratch |
+| **API Speedrun** ⚡ | 7/10 | REST API with full CRUD |
+| **The Untangler** 🍝 | 7/10 | Refactor spaghetti into clean code |
+| **Fort Knox** 🏦 | 9/10 | Patch every security hole |
+| **Clean Room** 🧹 | 9/10 | Write the cleanest utility function |
+
+Community challenges welcome — submit via PR to `challenges/community/`.
+
+## 🎨 Custom Personality Creator (NEW)
+
+Don't like the built-in personalities? Make your own. Pick "Custom" in the personality picker, describe a voice ("a disappointed TypeScript compiler", "Bob Ross looking at your code", "your mom"), and Blunt Cake generates the personality spec with sample roast lines. Preview it, tweak it, save it for reuse.
+
+Saved custom personalities appear alongside the built-in packs on future roasts.
 
 ## Code Review Categories
 

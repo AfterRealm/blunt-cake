@@ -1,5 +1,26 @@
 # Changelog
 
+## v2.2.0 — 2026-04-05
+
+> *Eight modes. Create your own personality. Coding challenges with target scores. This thing has a curriculum now.*
+
+### Custom Personality Creator 🎨
+- Pick "Custom" in the personality picker and describe any voice you want
+- Blunt Cake generates a full personality spec with sample roast lines
+- Preview, tweak, and save custom personalities for reuse
+- Saved personalities appear alongside built-in packs on future roasts
+- Stored in `.blunt-cake/custom-personalities/` as markdown files
+
+### Roast Challenges 🎯🔥
+- 5 built-in coding challenges with target scores to beat
+- Auth Gauntlet (8/10), API Speedrun (7/10), The Untangler (7/10), Fort Knox (9/10), Clean Room (9/10)
+- Each challenge has: brief, requirements checklist, judging criteria, and optional starter code
+- Solutions judged by Standard Roast with per-requirement PASS/FAIL checks
+- Community challenges: submit via PR to `challenges/community/`
+- Challenge results show score vs target, requirements check table, and full roast
+
+---
+
 ## v2.1.0 — 2026-04-05
 
 > *86% eval pass rate. 97% excluding the one mode that literally can't run in headless.*
