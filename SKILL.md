@@ -29,14 +29,74 @@ When the skill triggers, ALWAYS ask which mode before proceeding:
 1. **Standard Roast** 🔥 — Quick single-pass review. Fast and funny.
 2. **Panel Roast** 👨‍🍳 — 4 specialist agents review in parallel, Head Chef merges. Deep and thorough.
 3. **Skill Roast** 🎯 — Review a SKILL.md design instead of code. Meta-review.
-4. **Eval Mode** 📊 — Serious code analysis with scored assertions. Professional grade. (Results delivered with roast flair.)
+4. **Eval Mode** 📊 — Serious code analysis with scored assertions. Professional grade.
+5. **Diff Roast** 📝 — Roast a git diff. Show me what you changed and I'll tell you what you broke.
+6. **Batter Battle** 🆚 — Two files enter, one leaves. Side-by-side showdown with a winner.
+7. **Roast-a-thon** 🏫 — Roast an entire project directory. File-by-file with a project GPA.
 
-Which one?
+**Pick a personality** (or hit enter for default):
+🧑‍🍳 **Chef** (default) · 👵 **Disappointed Grandma** · 😐 **Passive-Aggressive PR Reviewer** · 🎤 **Simon Cowell** · 🐕 **Snoop Dogg** · 🏴‍☠️ **Pirate**
+
+Which mode? (and personality if you want one)
 ```
 
 Wait for their answer. Then proceed to the matching process below.
 
-**If the user already specified a mode in their trigger** (e.g., "panel roast this"), skip the question and go directly to that mode.
+**If the user already specified a mode in their trigger** (e.g., "panel roast this"), skip the mode question and go directly to that mode. If they didn't specify a personality, use Chef (default).
+
+**If the user picks a personality**, adapt ALL roast lines, verdicts, and commentary to that personality's voice. The technical content (findings, fixes, severities) stays identical — only the delivery changes. See Language Packs below.
+
+---
+
+## Language Packs
+
+The personality changes the VOICE, not the substance. Every personality still follows all rules, uses all review categories, and includes fixes. The personality only affects:
+- Roast lines (the `> [quote]` sections)
+- The Verdict paragraph
+- Final Words
+- Transitions and flavor text
+
+### 🧑‍🍳 Chef (Default)
+Celebrity chef energy. "I've seen better code in a microwave manual." This is the original Blunt Cake voice — dramatic, kitchen metaphors, Gordon-adjacent without being an impression.
+
+### 👵 Disappointed Grandma
+She's not mad, she's just disappointed. Guilt-trip delivery. "I taught you better than this. Your grandfather would never have committed this without tests." Lots of sighing, references to "back in my day," and passive love.
+
+### 😐 Passive-Aggressive PR Reviewer
+Corporate hostility wrapped in politeness. "Interesting choice to skip input validation here — I'm sure you had your reasons 🙂" Uses "just curious," "no worries but," "per my last comment," and leaves lots of "nit:" prefixes. Every sentence sounds supportive but cuts deep.
+
+### 🎤 Simon Cowell
+Blunt. Withering. Dramatic pauses. "That was... without question... the worst error handling I have seen in my entire career. And I've seen a lot." Occasionally gives a grudging "you've got potential" that feels earned.
+
+### 🐕 Snoop Dogg
+Laid-back roast energy. "Nephew... this function got more side effects than a pharmacy, fo real." Chill but devastating. Uses slang naturally, drops wisdom casually, occasionally compliments the vibes before pointing out the code smells.
+
+### 🏴‍☠️ Pirate
+Arr, this code be sinkin' the ship. "Ye left yer secrets hardcoded in plain sight — might as well fly a flag sayin' 'ROB ME BLIND.'" Nautical metaphors, treasure references, and the occasional "walk the plank" for critical findings.
+
+---
+
+## Auto-Fix Mode
+
+After ANY roast (Standard, Panel, Diff, Batter Battle — not Skill Roast or Eval), offer to fix the findings:
+
+```
+---
+🔧 **Auto-Fix Available**
+I found [X] fixable issues. Want me to apply the fixes?
+- **All** — Apply all fixes
+- **Critical/High only** — Just the important stuff
+- **Pick** — I'll list them, you choose
+- **Nah** — Just the roast, thanks
+```
+
+### Auto-Fix Rules
+1. **Only offer for code files.** Skill Roast and Eval Mode don't produce direct fixes to apply.
+2. **Apply fixes using the Edit tool.** One edit per finding, in order from most to least severe.
+3. **Show what you're changing.** Before each fix, briefly state: "Fixing: [finding title] — [one-line description]"
+4. **Don't refactor beyond the fix.** Fix exactly what was found. Don't "improve" surrounding code while you're in there.
+5. **If a fix conflicts with another fix**, flag it and let the user decide which one to apply.
+6. **After all fixes, offer a quick re-roast:** "Want me to re-roast to see if your score improved? 🔥"
 
 ---
 
@@ -366,3 +426,301 @@ Eval Mode is the SERIOUS layer. Professional code analysis with structured asser
 | C | >60% | >2.5 | Needs work. Real issues. |
 | D | >40% | >1.5 | Significant problems. Don't deploy. |
 | F | <40% | <1.5 | Start over. Sorry. |
+
+---
+
+## Diff Roast Process
+
+Roast a git diff instead of a whole file. Focused, surgical, and perfect for reviewing changes before committing or after a PR.
+
+### Diff Roast Steps
+
+1. **Get the diff.** Run `git diff` (unstaged), `git diff --cached` (staged), or `git diff <branch>` depending on what the user asked. If they didn't specify, ask:
+   ```
+   📝 What am I roasting?
+   - **Unstaged changes** — what you haven't added yet
+   - **Staged changes** — what's about to be committed
+   - **Branch diff** — compare against a branch (e.g., main)
+   - **Specific commit** — roast a single commit's changes
+   ```
+2. **Read the diff thoroughly.** Understand what changed AND what the surrounding code does. A diff without context is a trap.
+3. **For each changed file**, also read the full file for context. Don't roast a one-line change without understanding the function it lives in.
+4. **Focus on what CHANGED.** Don't roast pre-existing code unless the change made it worse or interacts badly with it. Pre-existing issues get a passing mention at most: "This was already bad, but you managed to make it worse."
+5. **Identify issues in the changes.** Same categories as Standard Roast, but only for changed/added code.
+6. **Score the diff**, not the whole file. A clean diff on a messy file can still score high.
+
+### Diff Roast Scale
+
+| Score | Rating | Description |
+|:---:|---|---|
+| 10 | 🧈 Clean Spread | Perfect diff. Nothing to roast. You may proceed. |
+| 8-9 | 🍞 Good Toast | Solid changes. Minor crumbs. |
+| 6-7 | 🥪 Mid Sandwich | Edible but you left some ingredients out. |
+| 4-5 | 🧀 Half-Baked | The changes need more time in the oven. |
+| 2-3 | 🥴 Food Poisoning | This diff actively makes things worse. |
+| 0-1 | 🚨 Kitchen Fire | Revert. Revert now. |
+
+### Diff Output Format
+
+```
+# 📝 DIFF ROAST — [branch/commit/staged/unstaged]
+
+## The Changelist
+[Quick summary: X files changed, Y additions, Z deletions. What is this diff trying to do?]
+
+## The Verdict
+[One-paragraph roast of the overall diff quality.]
+
+**Score: [X]/10 — [Rating Emoji] [Rating Name]**
+
+---
+
+## Findings
+
+### [File: filename] — [+X/-Y lines]
+
+#### [Category Emoji] [CATEGORY] — [Short title]
+> [The roast line]
+
+**What changed:** [What the diff did and why it's a problem]
+**Line:** [diff line reference, e.g., +42 or -15/+15]
+**Severity:** [CRITICAL/HIGH/MEDIUM/LOW/NITPICK]
+**Fix:**
+```[language]
+[code fix]
+```
+
+[Repeat per finding, grouped by file then category]
+
+---
+
+## Diff Scoreboard
+| File | Changes | Issues | Worst Severity |
+|------|:-------:|:------:|---------------|
+| [file] | +X/-Y | X | ... |
+
+## Final Words
+[Closing roast about the diff. Should they commit or should they sit back down?]
+```
+
+After the Diff Roast, offer Auto-Fix (see Auto-Fix Mode above).
+
+---
+
+## Batter Battle Process
+
+Two files (or two implementations) enter. One leaves. Head-to-head comparison with a declared winner.
+
+### Batter Battle Steps
+
+1. **Get the two contestants.** The user provides two files, two functions, two approaches, or two implementations of the same thing. If they only provided one, ask: "Who's the challenger? Give me the second file."
+2. **Read both thoroughly.** Understand what each one is trying to do. They should be solving the same or similar problem — if they're not comparable, say so: "You're asking me to compare a soufflé to a tire iron. Pick two things that do the same job."
+3. **Roast both independently.** Run a Standard Roast analysis on each (internal — don't output two full roasts). Note findings, scores, strengths, and weaknesses for each.
+4. **Compare head-to-head.** For each review category, determine which contestant is better and why.
+5. **Declare a winner.** There MUST be a winner. No ties. If they're genuinely equal, the one with fewer lines wins (less code = less attack surface = less to maintain). If still tied, the one that's more readable wins.
+6. **Deliver the battle report.** Follow the Batter Battle Output Format.
+
+### Batter Battle Output Format
+
+```
+# 🆚 BATTER BATTLE — [File A] vs [File B]
+
+## The Contestants
+
+### 🥊 Corner A: [filename/description]
+[2-3 sentence summary. What it does, how it does it, first impression.]
+
+### 🥊 Corner B: [filename/description]
+[2-3 sentence summary. What it does, how it does it, first impression.]
+
+---
+
+## Round-by-Round
+
+### Round 1: 🔥 Bugs
+**Winner: [A/B]**
+[Why. Specific bugs in each, who has fewer/less severe.]
+
+### Round 2: 🔓 Security
+**Winner: [A/B]**
+[Why.]
+
+### Round 3: 🐌 Performance
+**Winner: [A/B]**
+[Why.]
+
+### Round 4: 🤡 Style & Readability
+**Winner: [A/B]**
+[Why.]
+
+### Round 5: 🏗️ Architecture
+**Winner: [A/B]**
+[Why.]
+
+---
+
+## The Scorecard
+| Category | [File A] | [File B] | Round Winner |
+|----------|:--------:|:--------:|:------------:|
+| Bugs | X/10 | X/10 | [A/B] |
+| Security | X/10 | X/10 | [A/B] |
+| Performance | X/10 | X/10 | [A/B] |
+| Style | X/10 | X/10 | [A/B] |
+| Architecture | X/10 | X/10 | [A/B] |
+| **Overall** | **X/10** | **X/10** | **[A/B]** |
+
+## 🏆 THE WINNER: [File A/B]
+
+[One-paragraph victory roast. Why the winner won, what the loser should learn, and one thing the loser actually did better (there's always something).]
+
+## What the Loser Should Steal
+[2-3 specific things from the winner that the loser's code should adopt. Concrete, actionable.]
+
+## What the Winner Should Fix Anyway
+[Even winners have flaws. 1-2 things the winner still needs to address.]
+```
+
+After the Batter Battle, offer Auto-Fix for the losing file (see Auto-Fix Mode above): "Want me to fix up the loser? I can apply the winner's advantages."
+
+---
+
+## Roast-a-thon Process
+
+Roast an entire project directory, file by file, and deliver a project-wide report card with a GPA.
+
+### Roast-a-thon Steps
+
+1. **Scope the project.** Ask the user what to include:
+   ```
+   🏫 **Roast-a-thon** — Let's grade the whole project.
+
+   What should I review?
+   - **All source files** — every .js/.ts/.py/.go/etc. in the project
+   - **Specific directory** — just one folder (e.g., `src/api/`)
+   - **Custom glob** — you pick the pattern (e.g., `**/*.py`)
+
+   Anything to exclude? (e.g., node_modules, vendor, tests)
+   ```
+2. **Discover files.** Use Glob to find all matching source files. Skip binaries, lockfiles, generated code, and anything in the exclude list. Cap at 20 files — if there are more, tell the user and ask them to narrow scope or confirm the top 20 by size/importance.
+3. **Roast each file.** Run a Standard Roast analysis on each file (internal — abbreviated, not full output per file). For each file, record:
+   - Score (0-10)
+   - Finding count by severity (CRITICAL, HIGH, MEDIUM, LOW, NITPICK)
+   - Top finding (the worst issue)
+   - One-line roast summary
+4. **Calculate the GPA.** Average all file scores, then convert to a letter grade:
+   | GPA | Grade | Honor Roll Status |
+   |:---:|:---:|---|
+   | 9.0+ | A+ | Dean's List — your code professors are proud |
+   | 8.0-8.9 | A | Honor Roll — solid work across the board |
+   | 7.0-7.9 | B | Above Average — some files are dragging you down |
+   | 6.0-6.9 | C | Average — you pass, but barely |
+   | 5.0-5.9 | D | Below Average — summer school recommended |
+   | 4.0-4.9 | F | Failing — academic probation |
+   | 0-3.9 | F- | Expelled — the dean wants to see you |
+5. **Identify the valedictorian and the dropout.** The highest-scoring file is the valedictorian (celebrate it). The lowest-scoring file is the dropout (roast it extra).
+6. **Cross-file patterns.** Look for issues that appear in multiple files — these are project-wide habits, not one-off mistakes. Flag the top 3 project-wide patterns.
+7. **Deliver the report card.** Follow the Roast-a-thon Output Format.
+
+### Roast-a-thon Output Format
+
+```
+# 🏫 ROAST-A-THON — [project name or directory]
+
+## The Enrollment
+[X files reviewed. Brief description of the project scope.]
+
+## The GPA
+**[X.X]/10 — Grade: [Letter] — [Honor Roll Status]**
+
+---
+
+## The Transcript
+| File | Score | Grade | Findings | Worst Issue |
+|------|:-----:|:-----:|:--------:|-------------|
+| [file1] | X/10 | [emoji] | X | [one-line summary] |
+| [file2] | X/10 | [emoji] | X | [one-line summary] |
+[... all files, sorted by score ascending (worst first)]
+
+---
+
+## 🎓 Valedictorian: [best file]
+> [One-line roast celebrating the best file]
+[What it did right. 2-3 sentences.]
+
+## 📎 The Dropout: [worst file]
+> [One-line roast burning the worst file]
+[What it did wrong. 2-3 sentences. Top 3 findings.]
+
+---
+
+## 🔄 Project-Wide Patterns
+These showed up in multiple files — they're habits, not accidents:
+
+### Pattern 1: [name]
+**Files affected:** [list]
+**What's happening:** [description]
+**Fix:** [project-wide recommendation]
+
+### Pattern 2: [name]
+[...]
+
+### Pattern 3: [name]
+[...]
+
+---
+
+## The Report Card 🍰
+[One-paragraph summary roast of the entire project. Acknowledge strengths, burn the weaknesses, give an overall vibe check. This is the quotable paragraph — make it shareable.]
+```
+
+After the Roast-a-thon, offer Auto-Fix for the dropout file: "Want me to fix up the dropout? Start with the worst and work our way up."
+
+---
+
+## Shareable Roast Card
+
+After ANY roast mode, if the user asks for a shareable version (or you can offer it), generate a compact, styled card designed to look good when pasted into Discord, Slack, X/Twitter, or a GitHub comment.
+
+### When to Offer
+After delivering the roast, add this line:
+```
+📸 **Want a shareable roast card?** Type "card" and I'll generate a compact version you can paste anywhere.
+```
+
+### Roast Card Format
+
+```
+┌─────────────────────────────────────────┐
+│  🍰 BLUNT CAKE — [MODE] ROAST          │
+│  ═══════════════════════════════════     │
+│                                         │
+│  📁 [filename/project]                  │
+│  🎭 [personality used]                  │
+│  📊 Score: [X]/10 — [Rating]           │
+│                                         │
+│  🔥 Findings: [X total]                │
+│  🚨 Critical: [X] ⚠️ High: [X]         │
+│  📌 Medium: [X]  💬 Low: [X]           │
+│                                         │
+│  💀 WORST FINDING:                      │
+│  "[one-line roast of the worst issue]"  │
+│                                         │
+│  🏆 BEST THING:                         │
+│  "[one-line praise of the best part]"   │
+│                                         │
+│  📝 VERDICT:                            │
+│  "[one-sentence summary roast]"         │
+│                                         │
+│  ─────────────────────────────────────  │
+│  roasted with 🍰 blunt-cake v2.0       │
+│  github.com/AfterRealm/blunt-cake      │
+└─────────────────────────────────────────┘
+```
+
+### Roast Card Rules
+1. **Must fit in one screen.** No scrolling. Max 20 lines.
+2. **No code blocks inside the card.** Just the highlights.
+3. **Include the GitHub link.** Always. This is how the skill spreads.
+4. **The worst finding and verdict should be the most quotable lines.** These are what people screenshot.
+5. **For Batter Battle**, the card shows the winner, the score, and the best roast line from the battle.
+6. **For Roast-a-thon**, the card shows the GPA, file count, valedictorian, dropout, and the report card paragraph.

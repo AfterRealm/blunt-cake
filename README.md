@@ -12,9 +12,9 @@ claude plugin add AfterRealm/blunt-cake
 
 Or manually: copy this repo to `~/.claude/plugins/blunt-cake/`
 
-## Four Modes
+## Seven Modes
 
-When triggered, the skill asks which mode you want:
+When triggered, the skill asks which mode you want — plus a personality:
 
 ```
 🍰 Blunt Cake — Pick your serving:
@@ -23,6 +23,11 @@ When triggered, the skill asks which mode you want:
 2. Panel Roast 👨‍🍳 — 4 specialist agents in parallel
 3. Skill Roast 🎯 — Review a SKILL.md design
 4. Eval Mode 📊 — Serious analysis with scored assertions
+5. Diff Roast 📝 — Roast a git diff
+6. Batter Battle 🆚 — Two files enter, one leaves
+7. Roast-a-thon 🏫 — Roast an entire project directory
+
+Pick a personality: 🧑‍🍳 Chef (default) · 👵 Disappointed Grandma · 😐 Passive-Aggressive PR Reviewer · 🎤 Simon Cowell · 🐕 Snoop Dogg · 🏴‍☠️ Pirate
 ```
 
 ### 🔥 Standard Roast
@@ -67,6 +72,141 @@ Grade: C — "You validated the password and forgot everything else.
 Like acing the quiz and failing the final."
 ```
 
+### 📝 Diff Roast (NEW)
+Roast your git diff before you commit. Targets only what changed — won't blame you for pre-existing sins (unless you made them worse).
+
+- Reviews unstaged, staged, branch diffs, or specific commits
+- Reads full file context around changes for accurate assessment
+- Scores the DIFF, not the whole file
+
+```
+📝 DIFF ROAST — staged changes
+
+3 files changed, 47 additions, 12 deletions
+Score: 6/10 — 🥪 Mid Sandwich
+
+"You fixed the auth bug and introduced two new ones.
+That's not a net positive, that's a lateral move."
+```
+
+### 🆚 Batter Battle (NEW)
+Two implementations enter. One leaves. Side-by-side comparison across all review categories with a declared winner.
+
+- 5 rounds: Bugs, Security, Performance, Style, Architecture
+- Per-round winners with specific reasoning
+- No ties allowed — someone's getting sent home
+- Winner still gets roasted for their flaws
+- Loser gets actionable advice stolen from the winner
+
+```
+🆚 BATTER BATTLE — auth_v1.js vs auth_v2.js
+
+Round 1 (Bugs): auth_v2 ✓
+Round 2 (Security): auth_v2 ✓
+Round 3 (Performance): auth_v1 ✓
+Round 4 (Style): auth_v2 ✓
+Round 5 (Architecture): auth_v2 ✓
+
+🏆 WINNER: auth_v2 (4-1)
+"v2 won by a landslide, but that memory leak in round 3
+means you're celebrating with a slow clap."
+```
+
+## 🧑‍🍳 Language Packs (NEW)
+
+Pick a personality for your roast. Same findings, different delivery:
+
+| Personality | Vibe |
+|-------------|------|
+| 🧑‍🍳 **Chef** (default) | Celebrity chef who found raw chicken in the walk-in |
+| 👵 **Disappointed Grandma** | Not mad, just disappointed. Guilt-trip delivery. |
+| 😐 **Passive-Aggressive PR Reviewer** | "Interesting choice 🙂" — corporate hostility in polite wrapping |
+| 🎤 **Simon Cowell** | Withering. Dramatic pauses. Grudging "you've got potential." |
+| 🐕 **Snoop Dogg** | Chill but devastating. Drops wisdom casually. |
+| 🏴‍☠️ **Pirate** | Nautical metaphors. Your secrets are "flying a flag sayin' ROB ME BLIND." |
+
+## 🔧 Auto-Fix (NEW)
+
+After any code roast, Blunt Cake offers to apply the fixes it suggested:
+
+```
+🔧 Auto-Fix Available — 7 fixable issues found
+- All — Apply all fixes
+- Critical/High only — Just the important stuff
+- Pick — I'll list them, you choose
+- Nah — Just the roast, thanks
+```
+
+Fixes are applied one at a time, most severe first. After fixing, offers a re-roast to check your new score.
+
+### 🏫 Roast-a-thon (NEW)
+Roast an entire project directory, file by file, and get a project GPA.
+
+- Scans all source files (or a custom glob/directory)
+- Caps at 20 files per run — focused, not overwhelming
+- Each file gets a score and one-line roast summary
+- Identifies the Valedictorian (best file) and the Dropout (worst file)
+- Finds project-wide patterns — habits that show up across multiple files
+- GPA grading: A+ (Dean's List) to F- (Expelled)
+
+```
+🏫 ROAST-A-THON — my-api/
+
+12 files reviewed
+GPA: 5.8/10 — Grade: D — Below Average
+
+🎓 Valedictorian: utils/validate.ts (9/10)
+📎 Dropout: routes/auth.js (2/10)
+
+Project-wide patterns:
+  1. No input validation on 8/12 endpoints
+  2. Console.log debugging in 5 files
+  3. Zero error handling in database calls
+```
+
+## 📸 Shareable Roast Cards (NEW)
+
+After any roast, type "card" to get a compact, styled summary designed for Discord, Slack, X/Twitter, or GitHub comments. Includes your score, worst finding, best praise, and a link back to Blunt Cake. Screenshot-ready.
+
+```
+┌──────────────────────────────────────┐
+│  🍰 BLUNT CAKE — STANDARD ROAST     │
+│  📁 auth.js                          │
+│  📊 Score: 2/10 — 🗑️ Dumpster Fire   │
+│  🔥 Findings: 7                      │
+│  💀 "Your JWT secret is 'secret123'" │
+│  🏆 "At least you used bcrypt"       │
+│  roasted with 🍰 blunt-cake v2.0    │
+└──────────────────────────────────────┘
+```
+
+## 🤖 CI/CD — GitHub Action (NEW)
+
+Auto-roast every PR with a GitHub Action. Blunt Cake runs a Diff Roast on the PR changes and posts the result as a comment.
+
+### Quick Setup
+1. Copy `.github/workflows/blunt-cake-roast.yml` to your repo
+2. Add `ANTHROPIC_API_KEY` as a repository secret
+3. Open a PR and watch the roast appear
+
+Configurable via env vars:
+- `ROAST_MODE` — `diff` (default), `standard`, or `roast-a-thon`
+- `ROAST_PERSONALITY` — any language pack name
+
+The PR comment wraps the roast in a collapsible `<details>` block so it doesn't flood the conversation.
+
+## 🏆 Hall of Fame (& Shame)
+
+Community leaderboard! Submit your roast scores to `hall-of-fame/README.md`:
+
+- **Hall of Shame** — lowest scores win. Wear it with pride.
+- **Hall of Fame** — highest scores. Clean code heroes.
+- **Hall of Improvement** — best before/after glow-ups.
+- **Roast-a-thon Honor Roll** — bravest full-project GPAs.
+- **Batter Battle Highlights** — best head-to-head matchups.
+
+Submit via PR or [GitHub Discussions](../../discussions).
+
 ## Code Review Categories
 
 | Category | What It Catches |
@@ -94,7 +234,7 @@ Like acing the quiz and failing the final."
 This skill ships with a self-improvement loop for developer QA:
 
 ```bash
-# Run the eval (5 test cases across all modes)
+# Run the eval (9 test cases across all modes)
 python evals/run_eval.py --markdown
 
 # Self-improvement cycle (eval → analyze failures → update SKILL.md)
@@ -128,6 +268,10 @@ The skill improved itself to a perfect score in 4 iterations.
 4. **Celebrate the good stuff.** The best roasts acknowledge skill before burning the mistakes.
 5. **Eval Mode is serious.** Professional assertions with real metrics. Comedy only in the final verdict.
 6. **The skill improves itself.** Failed evals drive targeted improvements. Ship, measure, iterate.
+7. **Personality is the sauce, not the steak.** Language packs change delivery, never substance.
+8. **Fix what you find.** Auto-Fix turns talk into action.
+9. **Grade the whole project, not just files.** Roast-a-thon finds patterns individuals miss.
+10. **Make it shareable.** If people can't screenshot it, it doesn't spread.
 
 ## License
 

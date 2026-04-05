@@ -1,0 +1,104 @@
+# Blunt Cake — PR Roast GitHub Action
+# Automatically roasts code changes on every pull request.
+#
+# Setup:
+#   1. Copy this workflow to your repo: .github/workflows/blunt-cake-roast.yml
+#   2. Add your Anthropic API key as a repository secret: ANTHROPIC_API_KEY
+#   3. Open a PR and watch the roast appear as a comment.
+#
+# Configuration (env vars):
+#   ROAST_MODE: Which roast mode to use (default: "diff")
+#   ROAST_PERSONALITY: Language pack (default: "chef")
+#   ROAST_MAX_FILES: Max files to review in roast-a-thon (default: 10)
+
+name: Blunt Cake Roast
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  ROAST_MODE: diff
+  ROAST_PERSONALITY: chef
+
+jobs:
+  roast:
+    name: "Roast PR #${{ github.event.pull_request.number }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Get PR diff
+        id: diff
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD > /tmp/pr_diff.patch
+          echo "diff_size=$(wc -l < /tmp/pr_diff.patch)" >> "$GITHUB_OUTPUT"
+          echo "files_changed=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | wc -l)" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if diff too large
+        if: steps.diff.outputs.diff_size > 2000
+        run: |
+          echo "::warning::PR diff is ${{ steps.diff.outputs.diff_size }} lines — too large for a single roast. Consider reviewing individual files."
+          echo "SKIP_ROAST=true" >> "$GITHUB_ENV"
+
+      - name: Roast the diff
+        if: env.SKIP_ROAST != 'true'
+        id: roast
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          DIFF_CONTENT=$(cat /tmp/pr_diff.patch)
+
+          PROMPT="You have the following skill loaded. Follow its instructions exactly.
+
+          $(cat SKILL.md 2>/dev/null || echo 'No SKILL.md found — use standard code review format.')
+
+          ---
+
+          The user says: \"Diff roast these PR changes. Use the ${{ env.ROAST_PERSONALITY }} personality. After the roast, generate a shareable roast card.\"
+
+          Here is the git diff:
+
+          \`\`\`diff
+          ${DIFF_CONTENT}
+          \`\`\`"
+
+          RESULT=$(echo "$PROMPT" | claude -p --model sonnet 2>/dev/null || echo "Roast failed — Claude couldn't process this diff.")
+
+          # Save to file (GitHub has output size limits)
+          echo "$RESULT" > /tmp/roast_output.md
+
+      - name: Post roast as PR comment
+        if: env.SKIP_ROAST != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Prepend header
+          {
+            echo "## :cake: Blunt Cake — PR Roast"
+            echo ""
+            echo "<details>"
+            echo "<summary>Click to see the roast (${{ steps.diff.outputs.files_changed }} files changed)</summary>"
+            echo ""
+            cat /tmp/roast_output.md
+            echo ""
+            echo "</details>"
+            echo ""
+            echo "---"
+            echo "*Roasted with [Blunt Cake](https://github.com/AfterRealm/blunt-cake) v2.0*"
+          } > /tmp/comment.md
+
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --body-file /tmp/comment.md

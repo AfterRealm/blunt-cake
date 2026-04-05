@@ -1,5 +1,63 @@
 # Changelog
 
+## v2.0.0 — 2026-04-05
+
+> *Seven modes. Six personalities. CI/CD. Hall of Fame. The full bakery.*
+
+### Roast-a-thon 🏫
+- Roast an entire project directory — every source file gets scored
+- Project GPA with letter grades (A+ Dean's List to F- Expelled)
+- Valedictorian (best file) and Dropout (worst file) callouts
+- Cross-file pattern detection — finds habits that repeat across the codebase
+- Caps at 20 files per run with customizable scope (directory, glob, excludes)
+
+### Shareable Roast Cards 📸
+- Compact, styled summary card after any roast — designed for Discord, Slack, X, GitHub
+- Includes score, worst finding, best praise, and Blunt Cake link
+- Max 20 lines — screenshot-ready, no scrolling
+- Works for all modes including Batter Battle and Roast-a-thon
+
+### CI/CD GitHub Action 🤖
+- Auto-roast PRs with `.github/workflows/blunt-cake-roast.yml`
+- Runs Diff Roast on PR changes, posts result as a collapsible PR comment
+- Configurable mode and personality via env vars
+- Skips diffs over 2000 lines (too large for single pass)
+- Requires only `ANTHROPIC_API_KEY` secret
+
+### Hall of Fame (& Shame) 🏆
+- Community leaderboard in `hall-of-fame/README.md`
+- Five boards: Shame (lowest wins), Fame (highest wins), Improvement (best glow-ups), Roast-a-thon Honor Roll, Batter Battle Highlights
+- Submit via PR or GitHub Discussions
+
+### Language Packs 🧑‍🍳👵😐🎤🐕🏴‍☠️
+- 6 roast personalities: Chef (default), Disappointed Grandma, Passive-Aggressive PR Reviewer, Simon Cowell, Snoop Dogg, Pirate
+- Personality selection integrated into the initial mode picker
+- Same findings, same fixes, same severity — different delivery voice
+- Personality affects roast lines, verdicts, and commentary only. Technical substance never changes.
+
+### Diff Roast 📝
+- Roast a git diff instead of a whole file — unstaged, staged, branch, or specific commit
+- Reads full file context around changes for accurate assessment
+- Scores the DIFF, not the whole file — won't blame pre-existing sins (unless you made them worse)
+- Diff-specific roast scale (Clean Spread → Kitchen Fire)
+- Per-file breakdown with diff line references (+42, -15/+15)
+
+### Batter Battle 🆚
+- Two implementations enter, one leaves — head-to-head comparison
+- 5 rounds: Bugs, Security, Performance, Style, Architecture
+- Per-round winners with specific reasoning, no ties allowed
+- Winner gets roasted for remaining flaws, loser gets actionable steal-list
+- After battle, offers Auto-Fix for the losing file
+
+### Auto-Fix Mode 🔧
+- After any code roast, offers to apply the fixes
+- Three fix scopes: All, Critical/High only, or Pick individual fixes
+- Applies edits one at a time, most severe first
+- After fixing, offers a re-roast to check your new score
+- Won't refactor beyond the finding — fixes exactly what was roasted
+
+---
+
 ## v1.2.0 — 2026-04-05
 
 > *Four modes. Because one way to judge your code was never enough.*

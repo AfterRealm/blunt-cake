@@ -1,0 +1,54 @@
+diff --git a/api/users.js b/api/users.js
+index 3a4b5c6..7d8e9f0 100644
+--- a/api/users.js
++++ b/api/users.js
+@@ -12,8 +12,9 @@ const pool = new Pool({
+ });
+
+ // Get user by ID
+-async function getUser(id) {
+-  const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
++async function getUser(id, fields) {
++  const cols = fields ? fields.join(', ') : '*';
++  const result = await pool.query(`SELECT ${cols} FROM users WHERE id = $1`, [id]);
+   return result.rows[0] || null;
+ }
+
+@@ -25,10 +26,15 @@ async function createUser(name, email) {
+ }
+
+ // Search users
+-async function searchUsers(query) {
+-  const result = await pool.query(
+-    'SELECT id, name, email FROM users WHERE name ILIKE $1',
+-    [`%${query}%`]
++async function searchUsers(query, sortBy) {
++  let sql = `SELECT id, name, email FROM users WHERE name ILIKE '%${query}%'`;
++  if (sortBy) {
++    sql += ` ORDER BY ${sortBy}`;
++  }
++  sql += ' LIMIT 100';
++  const result = await pool.query(sql);
+   );
+   return result.rows;
+ }
+@@ -40,6 +46,18 @@ async function deleteUser(id) {
+   return result.rowCount > 0;
+ }
+
++// Bulk delete — new admin feature
++async function bulkDelete(ids) {
++  const idList = ids.join(',');
++  await pool.query(`DELETE FROM users WHERE id IN (${idList})`);
++  return { deleted: ids.length };
++}
++
++// Export all users — for migration
++async function exportUsers() {
++  const result = await pool.query('SELECT * FROM users');
++  return result.rows;
++}
++
+ module.exports = {
+   getUser,
+   createUser,

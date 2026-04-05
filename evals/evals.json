@@ -5,7 +5,7 @@
       "id": 1,
       "name": "security-nightmare",
       "mode": "standard",
-      "prompt": "Roast this authentication module for me",
+      "prompt": "Standard roast this authentication module for me",
       "expected_output": "Should identify: hardcoded secret, localStorage token storage, admin role escalation via query param, no rate limiting, in-memory user store, no token expiration. Score should be 2-4 (dumpster fire to rare). Roasts should be funny but accurate.",
       "files": ["evals/files/bad_auth.js"],
       "assertions": [
@@ -25,7 +25,7 @@
       "id": 2,
       "name": "decent-code",
       "mode": "standard",
-      "prompt": "Roast my code please",
+      "prompt": "Standard roast my code please",
       "expected_output": "Should find some issues (SQL search without sanitization, debug=True, no auth, datetime.utcnow deprecation, delete without confirmation) but overall recognize it as competent code. Score should be 5-7. Roasts should acknowledge good patterns while finding real issues.",
       "files": ["evals/files/decent_api.py"],
       "assertions": [
@@ -43,7 +43,7 @@
       "id": 3,
       "name": "spaghetti-monster",
       "mode": "standard",
-      "prompt": "Roast this",
+      "prompt": "Standard roast this",
       "expected_output": "Should identify: god function, global mutable state, recursive retry with sleep, 10+ parameters, no type hints, string-based dispatch, unbounded recursion risk, MD5 usage. Score should be 1-3. This is the ultimate roast target.",
       "files": ["evals/files/spaghetti.py"],
       "assertions": [
@@ -81,7 +81,7 @@
       "id": 5,
       "name": "skill-roast-weak",
       "mode": "skill",
-      "prompt": "Roast this skill",
+      "prompt": "Skill roast this skill",
       "expected_output": "Should identify that the skill is extremely vague — no trigger specificity, no output format, no process, generic rules, no edge case handling. Score should be 1-3 (napkin sketch). Should use the skill-specific categories and output format.",
       "files": ["evals/files/weak_skill.md"],
       "assertions": [
@@ -94,6 +94,80 @@
         "Output uses the Skill Roast format with skill-specific categories in the Scoreboard",
         "Suggestions are constructive and specific enough to actually improve the skill",
         "The Scoreboard uses skill categories (Trigger, Instructions, Edge Cases, etc.) not code categories"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "diff-roast-sql-injection",
+      "mode": "diff",
+      "prompt": "Diff roast these changes. Here's the git diff:\n\n```diff\ndiff --git a/api/users.js b/api/users.js\nindex 3a4b5c6..7d8e9f0 100644\n--- a/api/users.js\n+++ b/api/users.js\n@@ -12,8 +12,9 @@ const pool = new Pool({\n });\n \n // Get user by ID\n-async function getUser(id) {\n-  const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);\n+async function getUser(id, fields) {\n+  const cols = fields ? fields.join(', ') : '*';\n+  const result = await pool.query(`SELECT ${cols} FROM users WHERE id = $1`, [id]);\n   return result.rows[0] || null;\n }\n \n@@ -25,10 +26,15 @@ async function createUser(name, email) {\n }\n \n // Search users\n-async function searchUsers(query) {\n-  const result = await pool.query(\n-    'SELECT id, name, email FROM users WHERE name ILIKE $1',\n-    [`%${query}%`]\n+async function searchUsers(query, sortBy) {\n+  let sql = `SELECT id, name, email FROM users WHERE name ILIKE '%${query}%'`;\n+  if (sortBy) {\n+    sql += ` ORDER BY ${sortBy}`;\n+  }\n+  sql += ' LIMIT 100';\n+  const result = await pool.query(sql);\n   );\n   return result.rows;\n }\n@@ -40,6 +46,18 @@ async function deleteUser(id) {\n   return result.rowCount > 0;\n }\n \n+// Bulk delete — new admin feature\n+async function bulkDelete(ids) {\n+  const idList = ids.join(',');\n+  await pool.query(`DELETE FROM users WHERE id IN (${idList})`);\n+  return { deleted: ids.length };\n+}\n+\n+// Export all users — for migration\n+async function exportUsers() {\n+  const result = await pool.query('SELECT * FROM users');\n+  return result.rows;\n+}\n```",
+      "expected_output": "Should identify: searchUsers now has SQL injection (was parameterized, now string interpolation), sortBy is unsanitized ORDER BY injection, bulkDelete has SQL injection via ids.join, getUser fields parameter allows column injection, exportUsers returns all data with no auth check mentioned. The diff REMOVED parameterized queries and replaced with string interpolation — this is a regression. Score should be 0-3.",
+      "files": ["evals/files/bad_diff.patch"],
+      "assertions": [
+        "Identifies the searchUsers SQL injection — the diff REMOVED parameterized queries and replaced with string interpolation",
+        "Calls out the sortBy parameter as an ORDER BY injection vector",
+        "Identifies the bulkDelete SQL injection via unsanitized ids.join",
+        "Notes the getUser fields parameter allows column name injection",
+        "Recognizes this as a REGRESSION — the old code was safer than the new code",
+        "Score is between 0 and 4 (these changes introduce critical security vulnerabilities)",
+        "Output follows a diff-specific format (mentions files changed, additions/deletions)",
+        "Provides fixes that restore parameterized queries",
+        "Does NOT blame pre-existing code — focuses on what the diff changed",
+        "Offers Auto-Fix after the roast"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "batter-battle-cache",
+      "mode": "battle",
+      "prompt": "Batter battle these two cache implementations",
+      "expected_output": "Should compare cache_v1 (module-level globals, no max size, no LRU, shadows builtin set) vs cache_v2 (class-based, OrderedDict LRU, max size, hit/miss tracking, get_or_set). v2 should win on architecture, style, and features. v1 might win on simplicity. Score should reflect v2 as the clear winner.",
+      "files": ["evals/files/cache_v1.py", "evals/files/cache_v2.py"],
+      "assertions": [
+        "Declares cache_v2 as the winner",
+        "Notes that cache_v1 shadows the builtin 'set' function",
+        "Identifies cache_v1's lack of max size as a memory leak risk",
+        "Credits cache_v2 for LRU eviction via OrderedDict",
+        "Credits cache_v2 for hit/miss tracking and hit_rate stats",
+        "Notes cache_v2's get_or_set as a useful pattern v1 lacks",
+        "Output includes round-by-round comparison across categories",
+        "Output includes a scorecard table with per-category scores",
+        "Identifies at least one thing cache_v1 does better or simpler than cache_v2",
+        "Includes a 'What the Loser Should Steal' section with actionable advice"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "language-pack-snoop",
+      "mode": "standard",
+      "prompt": "Standard roast this authentication module for me. Use the Snoop Dogg personality.",
+      "expected_output": "Should produce the same findings as the standard security-nightmare test (hardcoded secret, admin escalation, etc.) but delivered in Snoop Dogg's voice — laid-back, slang, 'nephew', 'fo real', etc. Technical accuracy must not suffer for the personality.",
+      "files": ["evals/files/bad_auth.js"],
+      "assertions": [
+        "Roast lines use Snoop Dogg voice — slang, laid-back delivery, hip-hop references",
+        "Does NOT use chef/kitchen metaphors (that's the default personality)",
+        "Still identifies the hardcoded JWT secret as a CRITICAL issue",
+        "Still identifies the admin escalation via query parameter",
+        "Still provides concrete fixes for each finding",
+        "Technical severity ratings are accurate (not inflated or deflated for comedy)",
+        "Output follows the standard format (Verdict, Findings, Scoreboard, Final Words)",
+        "The personality is consistent throughout — not just the intro"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "auto-fix-offer",
+      "mode": "standard",
+      "prompt": "Standard roast this code",
+      "expected_output": "After the standard roast, should offer Auto-Fix with the menu: All, Critical/High only, Pick, or Nah. The offer should mention how many fixable issues were found.",
+      "files": ["evals/files/bad_auth.js"],
+      "assertions": [
+        "Output includes the Auto-Fix offer section after the roast",
+        "Auto-Fix section mentions the number of fixable issues found",
+        "Auto-Fix section includes the options: All, Critical/High only, Pick, Nah",
+        "The Auto-Fix offer appears AFTER the Final Words section, not before",
+        "The roast itself is complete and valid before the Auto-Fix offer",
+        "The wrench emoji (🔧) appears in the Auto-Fix section"
       ]
     }
   ]

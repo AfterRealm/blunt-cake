@@ -231,7 +231,7 @@ def markdown_report(results, benchmark):
             f"{r['quality'].get('humor','?')}/5 |"
         )
 
-    lines.append(f"\n*3 test cases, Sonnet reviewer + Sonnet judge.*")
+    lines.append(f"\n*{len(results)} test cases, Opus reviewer + Opus judge.*")
 
     md = "\n".join(lines)
     out_path = EVAL_DIR / "eval-report.md"
