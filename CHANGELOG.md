@@ -1,5 +1,29 @@
 # Changelog
 
+## v1.1.0 — 2026-04-05
+
+> *One mode wasn't enough. Now there are three.*
+
+### Panel Roast (Multi-Agent)
+- **4 specialist agents in parallel** — Security Auditor, Performance Analyst, Architecture Critic, Style Judge
+- Head Chef coordinator merges, deduplicates, and cross-confirms findings
+- Panel Notes table shows which agent found what and where they agreed
+- Issues caught by multiple agents independently get flagged as high-confidence
+
+### Skill Roast (Meta-Review)
+- Review SKILL.md files instead of code — roast the skill design itself
+- 8 review categories: Trigger clarity, instruction specificity, edge cases, output format, process flow, rule consistency, unique value, eval-readiness
+- Separate Skill Roast Scale (Napkin Sketch → Draft → Almost There → Production-Grade)
+
+### Self-Improving Eval Loop
+- `self_improve.py` — automated improvement cycle: eval → analyze failures → propose SKILL.md changes → re-eval
+- Opus analyzes failed assertions and generates generalized fixes (not narrow patches)
+- SKILL.md backup saved before each modification
+- Iteration tracking with improvement logs
+- Multi-cycle support: `--cycles 3` runs 3 improvement rounds, stops early on perfect score
+
+---
+
 ## v1.0.0 — 2026-04-05
 
 > *Your code had it coming.*
@@ -12,14 +36,10 @@
 - Rules: roast the code not the coder, every roast backed by a real finding, celebrate what's done right
 
 ### The Eval
-- 3 hand-crafted test files covering the full spectrum:
-  - `bad_auth.js` — auth module with 6 security vulnerabilities (hardcoded secret, query param admin escalation, no rate limiting)
-  - `decent_api.py` — competent Flask API with real but non-critical issues (tests that good code doesn't get over-roasted)
-  - `spaghetti.py` — 150-line god function with 8 parameters, recursive retry, global mutable state, string dispatch (the ultimate roast target)
-- Automated eval runner (`evals/run_eval.py`) — runs each test with and without the skill, Opus judges assertions + quality
+- 3 hand-crafted test files covering the full spectrum
+- Automated eval runner with Opus as judge
 - 28 total assertions across test cases
-- Iteration tracking in `evals/iteration-N/`
-- Markdown report output (`--markdown` flag)
+- Iteration tracking + markdown report output
 
 ### First Eval Results
 - **93% assertion pass rate**
@@ -27,4 +47,3 @@
 - **Humor: 5.0/5** — actually funny
 - **Actionability: 5.0/5** — every finding has a fix
 - **Format compliance: 5.0/5** — follows the template
-- Spaghetti monster test: 10/10 assertions, perfect score
