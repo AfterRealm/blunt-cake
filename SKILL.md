@@ -781,7 +781,7 @@ After delivering the roast, add this line:
 │  "[one-sentence summary roast]"         │
 │                                         │
 │  ─────────────────────────────────────  │
-│  roasted with 🍰 blunt-cake v2.0       │
+│  roasted with 🍰 blunt-cake v2.2       │
 │  github.com/AfterRealm/blunt-cake      │
 └─────────────────────────────────────────┘
 ```

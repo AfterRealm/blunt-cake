@@ -75,6 +75,7 @@ jobs:
           ${DIFF_CONTENT}
           \`\`\`"
 
+          # Sonnet for CI/CD (fast + cheap). Change to opus for deeper reviews.
           RESULT=$(echo "$PROMPT" | claude -p --model sonnet 2>/dev/null || echo "Roast failed — Claude couldn't process this diff.")
 
           # Save to file (GitHub has output size limits)

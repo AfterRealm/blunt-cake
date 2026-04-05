@@ -192,7 +192,7 @@ After any roast, type "card" to get a compact, styled summary designed for Disco
 │  🔥 Findings: 7                      │
 │  💀 "Your JWT secret is 'secret123'" │
 │  🏆 "At least you used bcrypt"       │
-│  roasted with 🍰 blunt-cake v2.0    │
+│  roasted with 🍰 blunt-cake v2.2    │
 └──────────────────────────────────────┘
 ```
 
