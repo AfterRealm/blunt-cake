@@ -47,8 +47,24 @@ def run_eval():
 
     # Load eval config
     evals = json.loads(EVALS_FILE.read_text(encoding="utf-8"))
-    skill_text = SKILL_PATH.read_text(encoding="utf-8")
+    skill_router = SKILL_PATH.read_text(encoding="utf-8")
     test_cases = evals["evals"]
+
+    # Mode name → mode file mapping (v2.4.0 progressive disclosure refactor).
+    # The eval runner inlines the router + the relevant mode file per test case
+    # to mirror how the skill loads at runtime: router loads first, then the
+    # chosen mode file, not all 8 modes at once.
+    MODE_FILES = {
+        "standard": "modes/standard.md",
+        "panel": "modes/panel.md",
+        "skill": "modes/skill.md",
+        "eval": "modes/eval.md",
+        "diff": "modes/diff.md",
+        "battle": "modes/batter-battle.md",
+        "batter-battle": "modes/batter-battle.md",
+        "roast-a-thon": "modes/roast-a-thon.md",
+        "challenge": "modes/challenge.md",
+    }
 
     print("=" * 60)
     print("  ROAST MY CODE — EVALUATION")
@@ -79,6 +95,20 @@ def run_eval():
         print("  Without skill...", end=" ", flush=True)
         bare_output = run_claude("opus", bare_prompt, timeout=90)
         print(f"done ({len(bare_output)} chars)")
+
+        # ── Compose skill text (router + relevant mode file) ──
+        mode_rel_path = MODE_FILES.get(tc.get("mode", "standard"), "modes/standard.md")
+        mode_path = PROJECT_DIR / mode_rel_path
+        if mode_path.exists():
+            mode_body = mode_path.read_text(encoding="utf-8")
+            skill_text = (
+                f"{skill_router}\n\n---\n\n"
+                f"# Mode Instructions: {mode_path.name}\n\n"
+                f"(Loaded from `{mode_rel_path}` per Step 2 of SKILL.md router.)\n\n"
+                f"{mode_body}"
+            )
+        else:
+            skill_text = skill_router
 
         # ── Run WITH skill ──
         skill_prompt = f"""You have the following skill loaded. Follow its instructions exactly.

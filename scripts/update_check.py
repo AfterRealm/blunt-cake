@@ -11,7 +11,7 @@ from pathlib import Path
 
 REPO = "AfterRealm/blunt-cake"
 GITHUB_API = f"https://api.github.com/repos/{REPO}/releases/latest"
-CURRENT_VERSION = "2.2.2"
+CURRENT_VERSION = "2.4.0"
 
 
 def get_latest_version():

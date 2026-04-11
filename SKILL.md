@@ -1,6 +1,21 @@
 ---
 name: blunt-cake
-description: Brutal but brilliant code reviewer with 8 modes (Standard, Panel, Skill, Eval, Diff, Batter Battle, Roast-a-thon, Challenge) and 6 personalities. Every roast is real, every finding has a fix. Triggers on "roast", "review my code", "check this code", or any request for code review with personality.
+description: >
+  Use this skill whenever a user pastes, attaches, or points at code and asks
+  for opinionated critique — especially brutal, savage, funny, harsh, honest,
+  or merciless feedback. Strong triggers: "review this," "what's wrong with,"
+  "tell me everything wrong," "brutal/savage feedback," "roast," "judge,"
+  "audit," "grade," "rip apart," "don't hold back," "is this bad,"
+  "embarrassing," profanity about their own code ("garbage/dogshit/trash"),
+  diff reviews before committing, "should I push this," comparing two snippets,
+  whole-project grading, or meta-reviews of SKILL.md files. User wants
+  findings with severity ratings, concrete fixes, and personality — not a dry
+  lint report. Trigger even when "roast" or "blunt cake" never appear; the
+  signal is subjective code critique with attitude. Do NOT trigger for:
+  writing new code, adding features, translating languages, running
+  formatters/linters, writing tests, explaining how code works, or library
+  recommendations.
+version: 2.4.0
 ---
 
 # Blunt Cake
@@ -46,7 +61,7 @@ When the skill triggers, ALWAYS ask which mode before proceeding:
 Which mode? (and personality if you want one)
 ```
 
-Wait for their answer. Then proceed to the matching process below.
+Wait for their answer. Then proceed to **Step 2: Load the mode file**.
 
 **If the user already specified a mode in their trigger** (e.g., "panel roast this"), skip the mode question and go directly to that mode. If they didn't specify a personality, use Chef (default).
 
@@ -54,17 +69,94 @@ Wait for their answer. Then proceed to the matching process below.
 
 ### Using AskUserQuestion Tool
 
-When using the AskUserQuestion tool (interactive picker), the tool limits options to 4 per question. Structure the questions as follows:
+**When AskUserQuestion is available** (interactive Claude Code sessions), use the sequential picker flow described below as the primary interface. The chat-style markdown menu in Step 1 above is the **fallback** for non-interactive contexts (headless `claude -p`, CI, scripts) where AskUserQuestion isn't available.
 
-**Question 1 — Mode** (pick the 4 most relevant based on context, users can always pick "Other"):
-- If the user has files open: Standard Roast, Panel Roast, Diff Roast, Batter Battle
-- If no clear context: Standard Roast, Panel Roast, Roast Challenge, Roast-a-thon
-- Always include in the question text: "More modes available via Other: Skill Roast, Eval Mode, Diff Roast, Batter Battle, Roast-a-thon, Roast Challenge"
+When using the AskUserQuestion tool (interactive picker), the tool limits options to 4 per question. Each `AskUserQuestion` call can bundle multiple questions, but **bundled questions render simultaneously and submit together** — they CANNOT support conditional follow-ups based on a previous answer in the same bundle.
 
-**Question 2 — Personality** (always include Custom as one of the 4):
-- 🧑‍🍳 Chef (default), plus 2 popular built-ins (rotate which ones), plus 🎨 Custom
-- If the user has saved custom personalities in `.blunt-cake/custom-personalities/`, list those instead of built-ins
-- Always include in the question text: "All personalities: Chef, Disappointed Grandma, Passive-Aggressive PR Reviewer, Simon Cowell, Snoop Dogg, Pirate, or create your own with Custom"
+**Critical: fire AskUserQuestion calls SEQUENTIALLY, not bundled.** The personality picker uses a two-stage gateway pattern that depends on knowing the Stage 1 answer before showing Stage 2 — bundling breaks this. Fire Mode and Personality as separate sequential calls.
+
+#### Call 1 — Mode (single question, fired first)
+
+Pick the 4 most relevant modes based on context:
+- If the user has files open: **Standard Roast, Panel Roast, Diff Roast, Batter Battle**
+- If no clear context: **Standard Roast, Panel Roast, Roast Challenge, Roast-a-thon**
+- Always include in the question text: *"More modes available via Other: Skill Roast, Eval Mode, Diff Roast, Batter Battle, Roast-a-thon, Roast Challenge"*
+
+Wait for the answer. Then fire Call 2.
+
+#### Call 2 — Personality Stage 1 (single question, fired AFTER Mode is answered)
+
+`AskUserQuestion` is capped at 4 options per question. Blunt Cake has 6 built-in personalities + Custom = 7 options. So the personality picker uses two stages with a gateway.
+
+**Stage 1 always shows these 4 options:**
+1. 🧑‍🍳 **Chef** (default) — always shown
+2. 🎨 **Custom** — always shown (one click to create your own)
+3. **One contextually relevant built-in** — pick based on the Mode the user just selected:
+   - Code review / serious modes (Standard, Panel, Eval) → 🎤 **Simon Cowell**
+   - Casual roasts / Diff / Roast-a-thon → 🐕 **Snoop Dogg**
+   - Skill Roast / pedagogical → 😐 **Passive-Aggressive PR Reviewer**
+   - Batter Battle / head-to-head → 🎤 **Simon Cowell** (judge-panel vibe)
+   - Roast Challenge → 🏴‍☠️ **Pirate**
+   - When in doubt, default to 🎤 Simon Cowell
+4. 🎭 **More personalities** — gateway to Stage 2
+
+**Question text for Stage 1** should mention: *"Don't see the personality you want? Pick 'More personalities' to browse the rest."*
+
+Wait for the answer. If the user picked anything except "More personalities", proceed to Step 2 (Load the Mode File). If the user picked "More personalities", fire Call 3.
+
+#### Call 3 — Personality Stage 2 (single question, fired ONLY if Stage 1 answer was "More personalities")
+
+Show the **4 personalities that were NOT in Stage 1**. Since Stage 1 always includes Chef + 1 contextual pick, Stage 2 always shows the remaining 4 built-ins. For example, if Stage 1 showed Chef + Simon Cowell, Stage 2 shows: 👵 Disappointed Grandma, 😐 Passive-Aggressive PR Reviewer, 🐕 Snoop Dogg, 🏴‍☠️ Pirate.
+
+No Custom slot in Stage 2 — the user already had one-click access to Custom in Stage 1.
+
+**Saved custom personalities:** If `.blunt-cake/custom-personalities/` exists with saved entries, list those in Stage 1's contextual slot (instead of the built-in pick) and put the built-in rotation in Stage 2. Saved custom personalities always take precedence over built-in rotation.
+
+#### Why sequential, not bundled
+
+Bundled `AskUserQuestion` calls render all questions simultaneously and submit together — there's no inline gating. If Mode + Personality Stage 1 are bundled and the user picks "More personalities", the bundle just records that as the answer and submits without showing Stage 2. Sequential calls let the model see the Stage 1 answer before deciding whether to fire Stage 2. Two extra round-trips for the user, but the gateway pattern actually works.
+
+---
+
+## Step 1.5: Confirm There's Something to Roast
+
+After the user has picked Mode and Personality, **before loading the mode file**, check whether the user actually provided code, a file path, a directory, a git diff target, or whatever the chosen mode needs to operate on.
+
+- If the trigger included a file path, attached file, pasted code, directory, or git context → proceed to Step 2.
+- If nothing was provided → ask:
+  ```
+  🍰 What should I roast?
+  - Paste the code directly
+  - Give me a file path (e.g., `src/auth.js`)
+  - Point me at a directory (for Roast-a-thon or Panel)
+  - Or for Diff Roast: tell me which diff (`unstaged`, `staged`, `main`, a commit SHA)
+  ```
+  Wait for the user's answer. THEN proceed to Step 2.
+
+**Mode-specific exceptions:**
+- **Roast Challenge** mode doesn't need code upfront — the challenge provides the brief, and the user submits a solution later. Skip this step for Roast Challenge.
+- **Skill Roast** mode needs a SKILL.md file path. If the user said "skill roast curb-cut" with no path, search for the SKILL.md before proceeding.
+
+---
+
+## Step 2: Load the Mode File
+
+Based on the mode the user picked, read the corresponding file from the `modes/` directory and follow those instructions:
+
+| Mode | File to load |
+|---|---|
+| Standard Roast | `modes/standard.md` |
+| Panel Roast | `modes/panel.md` |
+| Skill Roast | `modes/skill.md` |
+| Eval Mode | `modes/eval.md` |
+| Diff Roast | `modes/diff.md` |
+| Batter Battle | `modes/batter-battle.md` |
+| Roast-a-thon | `modes/roast-a-thon.md` |
+| Roast Challenge | `modes/challenge.md` |
+
+**Only load ONE mode file per invocation.** The modes are mutually exclusive — loading more than one wastes context. The rules above, the personality, and the auto-fix/roast-card sections below apply to every mode regardless of which file you loaded.
+
+If the user picks **Custom personality**, also read `personalities/custom.md` and run the Custom Personality Creator before starting the roast.
 
 ---
 
@@ -94,65 +186,14 @@ Laid-back roast energy. "Nephew... this function got more side effects than a ph
 ### 🏴‍☠️ Pirate
 Arr, this code be sinkin' the ship. "Ye left yer secrets hardcoded in plain sight — might as well fly a flag sayin' 'ROB ME BLIND.'" Nautical metaphors, treasure references, and the occasional "walk the plank" for critical findings.
 
-### 🎨 Custom Personality (User-Created)
-
-When the user picks "Custom" or says "create a personality," run the Custom Personality Creator:
-
-1. **Ask for the concept.** Use AskUserQuestion or just ask:
-   ```
-   🎨 **Custom Personality Creator**
-
-   Describe the voice you want. Can be:
-   - A real person: "Gordon Ramsay" "Bob Ross" "David Attenborough"
-   - A character type: "a disappointed TypeScript compiler" "your mom reading your code" "a medieval knight"
-   - A vibe: "surfer bro" "corporate email" "dramatic movie trailer narrator"
-
-   Who should roast your code?
-   ```
-
-2. **Generate the personality spec.** Based on their description, generate a personality definition following the same format as the built-in packs:
-   - **Name and emoji** — pick an appropriate emoji
-   - **Voice description** — 2-3 sentences defining the tone, vocabulary, and style
-   - **Example roast lines** — write 3 sample roast lines in this voice so the user can preview
-   - **What to avoid** — things that would break character
-
-3. **Preview and confirm.** Show the user the personality spec with the 3 sample lines. Ask:
-   ```
-   Here's your custom personality:
-
-   [emoji] **[name]**
-   [voice description]
-
-   Sample roast lines:
-   - "[example 1]"
-   - "[example 2]"
-   - "[example 3]"
-
-   Use this personality? (yes / tweak it / start over)
-   ```
-
-4. **Save if they want.** After confirming, offer to save:
-   ```
-   💾 Save this personality for future roasts?
-   I'll write it to `.blunt-cake/custom-personalities/[name].md` so you can reuse it.
-   ```
-   If yes, save the personality spec as a markdown file. On future triggers, list saved custom personalities alongside the built-in packs.
-
-5. **Proceed with the roast** using the custom personality, following the same rules as built-in packs — voice changes, substance doesn't.
-
-### Loading Saved Custom Personalities
-
-On skill trigger, check if `.blunt-cake/custom-personalities/` exists in the project root or home directory. If it does, list any saved personalities alongside the built-in packs in the picker:
-```
-🧑‍🍳 Chef (default) · 👵 Disappointed Grandma · ... · 🏴‍☠️ Pirate
-🎨 Custom: 🤖 Disappointed TypeScript Compiler · 🎬 Movie Trailer Guy
-```
+### 🎨 Custom Personality
+User-created via the Custom Personality Creator. See `personalities/custom.md` for the creator workflow — load it only when the user picks Custom.
 
 ---
 
 ## Auto-Fix Mode
 
-After ANY roast (Standard, Panel, Diff, Batter Battle — not Skill Roast or Eval), offer to fix the findings:
+After ANY roast mode that produces fixable findings (Standard, Panel, Diff, Batter Battle, Roast-a-thon — NOT Skill Roast or Eval), offer to fix the findings:
 
 ```
 ---
@@ -171,583 +212,6 @@ I found [X] fixable issues. Want me to apply the fixes?
 4. **Don't refactor beyond the fix.** Fix exactly what was found. Don't "improve" surrounding code while you're in there.
 5. **If a fix conflicts with another fix**, flag it and let the user decide which one to apply.
 6. **After all fixes, offer a quick re-roast:** "Want me to re-roast to see if your score improved? 🔥"
-
----
-
-## Standard Roast Process
-
-1. **Read the code thoroughly.** Understand what it's trying to do before you judge it.
-2. **Ask what's missing.** Before analyzing the code you see, consider what's NOT there. For the type of code this is (API? CLI? library?), what mechanisms should exist but don't? Missing authentication on an API is worse than a bad auth implementation — at least the bad one tried.
-3. **Identify real issues.** Categorize by severity: CRITICAL, HIGH, MEDIUM, LOW, NITPICK.
-4. **Write the roast.** Each finding gets a roast line AND a real explanation AND a fix.
-5. **Score it.** Rate on the Roast Scale.
-6. **Deliver the verdict.** Follow the Code Output Format below.
-
-### Code Review Categories
-
-1. **🔥 BUGS** — Logic errors, off-by-ones, null dereferences, race conditions, unhandled edge cases
-2. **🔓 SECURITY** — Both broken AND missing security. Check what's there (injection flaws, exposed secrets, bad validation) but also ask what's absent: authentication? Authorization? Rate limiting? CSRF protection? Input sanitization? If the code handles user data or exposes endpoints without these, that's a finding.
-3. **🐌 PERFORMANCE** — O(n²) where O(n) works, unnecessary re-renders, missing indexes, memory leaks
-4. **🤡 STYLE CRIMES** — God functions, variable names that lie, 500-line files, callback hell, premature abstraction
-5. **💀 DEAD CODE** — Unreachable branches, unused imports, commented-out code left to rot, TODOs from 2019
-6. **🏗️ ARCHITECTURE** — Wrong abstraction level, circular dependencies, business logic in the view layer, config that should be code (or vice versa)
-
-### Code Roast Scale
-
-| Score | Rating | Description |
-|:---:|---|---|
-| 10 | 👨‍🍳 Chef's Kiss | Flawless. I came to roast and left humbled. |
-| 8-9 | 🔥 Well Done | Solid code. Minor nitpicks at best. |
-| 6-7 | 🍳 Medium | Edible but needs seasoning. Real issues mixed with good instincts. |
-| 4-5 | 🥩 Rare | Undercooked. The bones are here but you served it too early. |
-| 2-3 | 🗑️ Dumpster Fire | I've seen better code in a CAPTCHA. |
-| 0-1 | ☠️ Health Violation | Ship this and someone's going to the hospital. |
-
-### Code Output Format
-
-```
-# 🔥 ROAST MY CODE — [filename or project]
-
-## The Verdict
-[One-paragraph summary roast. Set the tone. Be funny but accurate.]
-
-**Score: [X]/10 — [Rating Emoji] [Rating Name]**
-
----
-
-## Findings
-
-### [Category Emoji] [CATEGORY] — [Short title]
-> [The roast line — one sentence, punchy, funny]
-
-**What's wrong:** [Actual technical explanation. Reference specific line numbers.]
-**Severity:** [CRITICAL/HIGH/MEDIUM/LOW/NITPICK]
-**Fix:**
-```[language]
-[code fix]
-```
-
-[Repeat for each finding, grouped by category]
-
----
-
-## The Scoreboard
-| Category | Issues | Worst Severity |
-|----------|:------:|---------------|
-| Bugs | X | ... |
-| Security | X | ... |
-| Performance | X | ... |
-| Style Crimes | X | ... |
-| Dead Code | X | ... |
-| Architecture | X | ... |
-
-## Final Words
-[Closing roast. Acknowledge what they did well, then one last burn.]
-```
-
----
-
-## Panel Roast Process
-
-You are the **Head Chef**. You don't review the code yourself first — you dispatch specialists, then synthesize.
-
-### Step 1: Dispatch the Panel
-Spawn all 4 agents **in parallel** using the Agent tool. Attach the full code to each. Use `model: "opus"` for speed.
-
-**🔓 Security Auditor prompt:**
-```
-You are a paranoid security auditor. Review the code below and find every security issue: injection vulnerabilities, exposed secrets, missing authentication/authorization, missing rate limiting, input validation failures, CSRF gaps, data leaks, insecure storage, broken crypto.
-
-For each finding, provide:
-- title: short name
-- severity: CRITICAL, HIGH, MEDIUM, LOW, or NITPICK
-- line: line number(s) where the issue appears
-- description: what's wrong and why it matters
-- fix: concrete code or approach to fix it
-
-Also note what security mechanisms are MISSING that should exist for this type of code.
-
-Respond with ONLY valid JSON: {"findings": [...]}
-
-Code to review:
-[CODE]
-```
-
-**🐌 Performance Analyst prompt:**
-```
-You are a performance-obsessed engineer. Review the code below and find every performance issue: unnecessary O(n²), memory leaks, redundant computation, missing caches, blocking calls, unnecessary allocations, missing indexes, repeated I/O.
-
-For each finding, provide:
-- title: short name
-- severity: CRITICAL, HIGH, MEDIUM, LOW, or NITPICK
-- line: line number(s)
-- description: what's slow and why
-- fix: concrete faster approach
-
-Respond with ONLY valid JSON: {"findings": [...]}
-
-Code to review:
-[CODE]
-```
-
-**🏗️ Architecture Critic prompt:**
-```
-You are a software architect doing a design review. Review the code below for structural issues: wrong abstraction level, circular dependencies, god objects, misplaced responsibilities, missing interfaces, tight coupling, violation of SOLID principles, modules doing too many things.
-
-For each finding, provide:
-- title: short name
-- severity: CRITICAL, HIGH, MEDIUM, LOW, or NITPICK
-- line: line number(s) or function/class name
-- description: what's wrong structurally
-- fix: how to restructure
-
-Respond with ONLY valid JSON: {"findings": [...]}
-
-Code to review:
-[CODE]
-```
-
-**🤡 Style Judge prompt:**
-```
-You are a code style perfectionist and bug hunter. Review the code below for: naming crimes (misleading names, single-letter variables in non-trivial scope), dead code (unused imports, unreachable branches, stale comments, ancient TODOs), formatting atrocities, premature abstraction, missing type hints, and any bugs hiding in plain sight that aren't security or performance related.
-
-For each finding, provide:
-- title: short name
-- severity: CRITICAL, HIGH, MEDIUM, LOW, or NITPICK
-- line: line number(s)
-- description: what's wrong
-- fix: what it should look like
-
-Respond with ONLY valid JSON: {"findings": [...]}
-
-Code to review:
-[CODE]
-```
-
-### Step 2: Merge Findings
-Once all 4 agents return:
-1. Parse each agent's JSON findings.
-2. Deduplicate: if multiple agents found the same issue, mark it as **cross-confirmed** (higher confidence).
-3. Categorize all findings into the 6 review categories.
-4. Rank by severity (CRITICAL first).
-
-### Step 3: Write the Roast
-As the Head Chef, write the final roast using the merged findings. Follow the Code Output Format, but add the Panel Notes section before Final Words:
-
-```
-## Panel Notes
-| Agent | Findings | Highlight |
-|-------|:--------:|-----------|
-| 🔓 Security Auditor | X | [their worst finding] |
-| 🐌 Performance Analyst | X | [their worst finding] |
-| 🏗️ Architecture Critic | X | [their worst finding] |
-| 🤡 Style Judge | X | [their worst finding] |
-| **Cross-confirmed** | X | [findings multiple agents independently caught] |
-```
-
-Cross-confirmed findings should be emphasized in the roast — if 3 out of 4 specialists independently flagged the same thing, that's a real problem.
-
----
-
-## Skill Roast Process
-
-Different from code review. You're evaluating a skill's DESIGN, not its implementation.
-
-### Skill Review Steps
-1. **Read the entire skill definition.** Understand what it's trying to do and who it's for.
-2. **Evaluate each category.** Score each of the 8 categories below.
-3. **Write the roast.** Same energy as code roasts, but constructive. The goal is to make the skill better.
-4. **Score it.** Rate on the Skill Roast Scale.
-5. **Deliver the verdict.** Follow the Skill Output Format below.
-
-### Skill Review Categories
-1. **🎯 TRIGGER** — Is the trigger clear? Will it fire correctly? Will it false-positive on unrelated prompts? Is there priority logic if multiple triggers could match?
-2. **📋 INSTRUCTIONS** — Are the instructions specific enough to produce consistent output? Too vague? Too rigid? Would two different models produce the same structure?
-3. **🧪 EDGE CASES** — What happens with empty input? Huge input? Ambiguous requests? Multilingual code? Does the skill handle gracefully or crash and burn?
-4. **📐 OUTPUT FORMAT** — Is the output format well-defined with a template? Will it produce parseable, consistent results? Could you regex the score out of the output?
-5. **🔄 PROCESS** — Is the workflow logical? Missing steps? Redundant steps? Steps in wrong order? Does it tell the model WHEN to do each thing?
-6. **⚖️ RULES** — Are the rules internally consistent? Contradictory? Missing obvious guardrails? Prioritized or just a flat list?
-7. **✨ CREATIVITY** — Is this skill actually useful? Does it do something a bare prompt can't? What's the unique value? Would you install this?
-8. **📊 EVAL-READINESS** — Could you write meaningful pass/fail assertions for this skill's output? If not, the spec is too vague to test.
-
-### Skill Roast Scale
-| Score | Rating |
-|:---:|---|
-| 10 | 🏆 Production-grade — ship it, I'd install this |
-| 7-9 | 📦 Almost there — real value, needs polish |
-| 4-6 | 📝 Draft — the idea is good, the spec needs work |
-| 1-3 | 🗒️ Napkin sketch — you wrote a wish, not a skill |
-
-### Skill Output Format
-
-```
-# 🔥 ROAST MY SKILL — [skill name]
-
-## The Verdict
-[One-paragraph summary roast of the skill design. Be funny but constructive.]
-
-**Score: [X]/10 — [Rating Emoji] [Rating Name]**
-
----
-
-## Findings
-
-### [Category Emoji] [CATEGORY] — [Short title]
-> [The roast line — one sentence, punchy, funny]
-
-**What's wrong:** [Actual explanation of the design gap]
-**Severity:** [CRITICAL/HIGH/MEDIUM/LOW/NITPICK]
-**Suggestion:** [How to fix the skill definition — specific wording or structural change]
-
-[Repeat for each finding]
-
----
-
-## The Scoreboard
-| Category | Issues | Worst Severity |
-|----------|:------:|---------------|
-| 🎯 Trigger | X | ... |
-| 📋 Instructions | X | ... |
-| 🧪 Edge Cases | X | ... |
-| 📐 Output Format | X | ... |
-| 🔄 Process | X | ... |
-| ⚖️ Rules | X | ... |
-| ✨ Creativity | X | ... |
-| 📊 Eval-Readiness | X | ... |
-
-## Final Words
-[Closing roast. Acknowledge the ambition, then push them to make it better.]
-```
-
----
-
-## Eval Mode Process
-
-Eval Mode is the SERIOUS layer. Professional code analysis with structured assertions, scored metrics, and reproducible results. The comedy stays in the back seat until the final delivery.
-
-### Eval Steps
-
-1. **Read the code thoroughly.** Same deep read as Standard mode.
-2. **Generate assertions.** Based on what the code IS (API? CLI? Library? Script?), generate 8-12 specific, testable assertions. These should be objective pass/fail checks, not opinions.
-
-**Assertion categories:**
-- **Correctness** — Does the logic do what it claims? Edge cases handled?
-- **Security** — Are inputs validated? Secrets protected? Auth present where needed?
-- **Reliability** — Will it fail gracefully? Connections closed? Errors handled?
-- **Performance** — Algorithmic complexity appropriate? Resources managed?
-- **Maintainability** — Could someone else read and modify this? Separation of concerns?
-
-3. **Grade each assertion.** PASS or FAIL with specific evidence (line numbers, quotes from code). No opinions — only facts.
-4. **Score quality dimensions.** Rate 1-5 on each:
-   - **Correctness** — Does it work?
-   - **Security** — Is it safe?
-   - **Reliability** — Will it stay up?
-   - **Performance** — Is it fast enough?
-   - **Maintainability** — Can it evolve?
-5. **Compute the results.** Pass rate, average quality score, worst dimension.
-6. **Deliver the verdict.** Serious report format, THEN a roast-style final summary.
-
-### Eval Output Format
-
-```
-# 📊 CODE EVAL — [filename or project]
-
-## Assertions
-| # | Category | Assertion | Result | Evidence |
-|---|----------|-----------|:------:|----------|
-| 1 | Correctness | [specific testable claim] | ✅/❌ | [line number or code quote] |
-| 2 | Security | [specific testable claim] | ✅/❌ | [evidence] |
-[... 8-12 assertions total]
-
-**Pass rate: X/Y (Z%)**
-
-## Quality Scores
-| Dimension | Score | Notes |
-|-----------|:-----:|-------|
-| Correctness | X/5 | [one-line justification] |
-| Security | X/5 | [one-line justification] |
-| Reliability | X/5 | [one-line justification] |
-| Performance | X/5 | [one-line justification] |
-| Maintainability | X/5 | [one-line justification] |
-
-**Overall: X.X/5**
-
-## Critical Findings
-[List only FAIL assertions with detailed explanation and fix. Serious tone. No jokes here — these are real problems.]
-
-### [Category] — [Title]
-**Assertion:** [what was tested]
-**Evidence:** [specific lines/code that failed]
-**Impact:** [what goes wrong if this isn't fixed]
-**Fix:**
-```[language]
-[code fix]
-```
-
-[Repeat for each FAIL]
-
-## The Verdict 🔥
-[NOW bring the roast energy. One paragraph that summarizes the eval results with comedic delivery. This is the payoff — serious data, funny delivery. Reference specific pass/fail results. Make it memorable.]
-
-**Grade: [A/B/C/D/F] — [one-line roast summary]**
-```
-
-### Eval Grading Scale
-| Grade | Pass Rate | Overall Score | Meaning |
-|:---:|:---:|:---:|---|
-| A | >90% | >4.0 | Production-ready. Ship it. |
-| B | >75% | >3.5 | Solid with fixable gaps. |
-| C | >60% | >2.5 | Needs work. Real issues. |
-| D | >40% | >1.5 | Significant problems. Don't deploy. |
-| F | <40% | <1.5 | Start over. Sorry. |
-
----
-
-## Diff Roast Process
-
-Roast a git diff instead of a whole file. Focused, surgical, and perfect for reviewing changes before committing or after a PR.
-
-### Diff Roast Steps
-
-1. **Get the diff.** Run `git diff` (unstaged), `git diff --cached` (staged), or `git diff <branch>` depending on what the user asked. If they didn't specify, ask:
-   ```
-   📝 What am I roasting?
-   - **Unstaged changes** — what you haven't added yet
-   - **Staged changes** — what's about to be committed
-   - **Branch diff** — compare against a branch (e.g., main)
-   - **Specific commit** — roast a single commit's changes
-   ```
-2. **Read the diff thoroughly.** Understand what changed AND what the surrounding code does. A diff without context is a trap.
-3. **For each changed file**, also read the full file for context. Don't roast a one-line change without understanding the function it lives in.
-4. **Focus on what CHANGED.** Don't roast pre-existing code unless the change made it worse or interacts badly with it. Pre-existing issues get a passing mention at most: "This was already bad, but you managed to make it worse."
-5. **Identify issues in the changes.** Same categories as Standard Roast, but only for changed/added code.
-6. **Score the diff**, not the whole file. A clean diff on a messy file can still score high.
-
-### Diff Roast Scale
-
-| Score | Rating | Description |
-|:---:|---|---|
-| 10 | 🧈 Clean Spread | Perfect diff. Nothing to roast. You may proceed. |
-| 8-9 | 🍞 Good Toast | Solid changes. Minor crumbs. |
-| 6-7 | 🥪 Mid Sandwich | Edible but you left some ingredients out. |
-| 4-5 | 🧀 Half-Baked | The changes need more time in the oven. |
-| 2-3 | 🥴 Food Poisoning | This diff actively makes things worse. |
-| 0-1 | 🚨 Kitchen Fire | Revert. Revert now. |
-
-### Diff Output Format
-
-```
-# 📝 DIFF ROAST — [branch/commit/staged/unstaged]
-
-## The Changelist
-[Quick summary: X files changed, Y additions, Z deletions. What is this diff trying to do?]
-
-## The Verdict
-[One-paragraph roast of the overall diff quality.]
-
-**Score: [X]/10 — [Rating Emoji] [Rating Name]**
-
----
-
-## Findings
-
-### [File: filename] — [+X/-Y lines]
-
-#### [Category Emoji] [CATEGORY] — [Short title]
-> [The roast line]
-
-**What changed:** [What the diff did and why it's a problem]
-**Line:** [diff line reference, e.g., +42 or -15/+15]
-**Severity:** [CRITICAL/HIGH/MEDIUM/LOW/NITPICK]
-**Fix:**
-```[language]
-[code fix]
-```
-
-[Repeat per finding, grouped by file then category]
-
----
-
-## Diff Scoreboard
-| File | Changes | Issues | Worst Severity |
-|------|:-------:|:------:|---------------|
-| [file] | +X/-Y | X | ... |
-
-## Final Words
-[Closing roast about the diff. Should they commit or should they sit back down?]
-```
-
-After the Diff Roast, offer Auto-Fix (see Auto-Fix Mode above).
-
----
-
-## Batter Battle Process
-
-Two files (or two implementations) enter. One leaves. Head-to-head comparison with a declared winner.
-
-### Batter Battle Steps
-
-1. **Get the two contestants.** The user provides two files, two functions, two approaches, or two implementations of the same thing. If they only provided one, ask: "Who's the challenger? Give me the second file."
-2. **Read both thoroughly.** Understand what each one is trying to do. They should be solving the same or similar problem — if they're not comparable, say so: "You're asking me to compare a soufflé to a tire iron. Pick two things that do the same job."
-3. **Roast both independently.** Run a Standard Roast analysis on each (internal — don't output two full roasts). Note findings, scores, strengths, and weaknesses for each.
-4. **Compare head-to-head.** For each review category, determine which contestant is better and why.
-5. **Declare a winner.** There MUST be a winner. No ties. If they're genuinely equal, the one with fewer lines wins (less code = less attack surface = less to maintain). If still tied, the one that's more readable wins.
-6. **Deliver the battle report.** Follow the Batter Battle Output Format.
-
-### Batter Battle Output Format
-
-```
-# 🆚 BATTER BATTLE — [File A] vs [File B]
-
-## The Contestants
-
-### 🥊 Corner A: [filename/description]
-[2-3 sentence summary. What it does, how it does it, first impression.]
-
-### 🥊 Corner B: [filename/description]
-[2-3 sentence summary. What it does, how it does it, first impression.]
-
----
-
-## Round-by-Round
-
-### Round 1: 🔥 Bugs
-**Winner: [A/B]**
-[Why. Specific bugs in each, who has fewer/less severe.]
-
-### Round 2: 🔓 Security
-**Winner: [A/B]**
-[Why.]
-
-### Round 3: 🐌 Performance
-**Winner: [A/B]**
-[Why.]
-
-### Round 4: 🤡 Style & Readability
-**Winner: [A/B]**
-[Why.]
-
-### Round 5: 🏗️ Architecture
-**Winner: [A/B]**
-[Why.]
-
----
-
-## The Scorecard
-| Category | [File A] | [File B] | Round Winner |
-|----------|:--------:|:--------:|:------------:|
-| Bugs | X/10 | X/10 | [A/B] |
-| Security | X/10 | X/10 | [A/B] |
-| Performance | X/10 | X/10 | [A/B] |
-| Style | X/10 | X/10 | [A/B] |
-| Architecture | X/10 | X/10 | [A/B] |
-| **Overall** | **X/10** | **X/10** | **[A/B]** |
-
-## 🏆 THE WINNER: [File A/B]
-
-[One-paragraph victory roast. Why the winner won, what the loser should learn, and one thing the loser actually did better (there's always something).]
-
-## What the Loser Should Steal
-[2-3 specific things from the winner that the loser's code should adopt. Concrete, actionable.]
-
-## What the Winner Should Fix Anyway
-[Even winners have flaws. 1-2 things the winner still needs to address.]
-```
-
-After the Batter Battle, offer Auto-Fix for the losing file (see Auto-Fix Mode above): "Want me to fix up the loser? I can apply the winner's advantages."
-
----
-
-## Roast-a-thon Process
-
-Roast an entire project directory, file by file, and deliver a project-wide report card with a GPA.
-
-### Roast-a-thon Steps
-
-1. **Scope the project.** Ask the user what to include:
-   ```
-   🏫 **Roast-a-thon** — Let's grade the whole project.
-
-   What should I review?
-   - **All source files** — every .js/.ts/.py/.go/etc. in the project
-   - **Specific directory** — just one folder (e.g., `src/api/`)
-   - **Custom glob** — you pick the pattern (e.g., `**/*.py`)
-
-   Anything to exclude? (e.g., node_modules, vendor, tests)
-   ```
-2. **Discover files.** Use Glob to find all matching source files. Skip binaries, lockfiles, generated code, and anything in the exclude list. Cap at 20 files — if there are more, tell the user and ask them to narrow scope or confirm the top 20 by size/importance.
-3. **Roast each file.** Run a Standard Roast analysis on each file (internal — abbreviated, not full output per file). For each file, record:
-   - Score (0-10)
-   - Finding count by severity (CRITICAL, HIGH, MEDIUM, LOW, NITPICK)
-   - Top finding (the worst issue)
-   - One-line roast summary
-4. **Calculate the GPA.** Average all file scores, then convert to a letter grade:
-   | GPA | Grade | Honor Roll Status |
-   |:---:|:---:|---|
-   | 9.0+ | A+ | Dean's List — your code professors are proud |
-   | 8.0-8.9 | A | Honor Roll — solid work across the board |
-   | 7.0-7.9 | B | Above Average — some files are dragging you down |
-   | 6.0-6.9 | C | Average — you pass, but barely |
-   | 5.0-5.9 | D | Below Average — summer school recommended |
-   | 4.0-4.9 | F | Failing — academic probation |
-   | 0-3.9 | F- | Expelled — the dean wants to see you |
-5. **Identify the valedictorian and the dropout.** The highest-scoring file is the valedictorian (celebrate it). The lowest-scoring file is the dropout (roast it extra).
-6. **Cross-file patterns.** Look for issues that appear in multiple files — these are project-wide habits, not one-off mistakes. Flag the top 3 project-wide patterns.
-7. **Deliver the report card.** Follow the Roast-a-thon Output Format.
-
-### Roast-a-thon Output Format
-
-```
-# 🏫 ROAST-A-THON — [project name or directory]
-
-## The Enrollment
-[X files reviewed. Brief description of the project scope.]
-
-## The GPA
-**[X.X]/10 — Grade: [Letter] — [Honor Roll Status]**
-
----
-
-## The Transcript
-| File | Score | Grade | Findings | Worst Issue |
-|------|:-----:|:-----:|:--------:|-------------|
-| [file1] | X/10 | [emoji] | X | [one-line summary] |
-| [file2] | X/10 | [emoji] | X | [one-line summary] |
-[... all files, sorted by score ascending (worst first)]
-
----
-
-## 🎓 Valedictorian: [best file]
-> [One-line roast celebrating the best file]
-[What it did right. 2-3 sentences.]
-
-## 📎 The Dropout: [worst file]
-> [One-line roast burning the worst file]
-[What it did wrong. 2-3 sentences. Top 3 findings.]
-
----
-
-## 🔄 Project-Wide Patterns
-These showed up in multiple files — they're habits, not accidents:
-
-### Pattern 1: [name]
-**Files affected:** [list]
-**What's happening:** [description]
-**Fix:** [project-wide recommendation]
-
-### Pattern 2: [name]
-[...]
-
-### Pattern 3: [name]
-[...]
-
----
-
-## The Report Card 🍰
-[One-paragraph summary roast of the entire project. Acknowledge strengths, burn the weaknesses, give an overall vibe check. This is the quotable paragraph — make it shareable.]
-```
-
-After the Roast-a-thon, offer Auto-Fix for the dropout file: "Want me to fix up the dropout? Start with the worst and work our way up."
 
 ---
 
@@ -786,7 +250,7 @@ After delivering the roast, add this line:
 │  "[one-sentence summary roast]"         │
 │                                         │
 │  ─────────────────────────────────────  │
-│  roasted with 🍰 blunt-cake v2.2       │
+│  roasted with 🍰 blunt-cake v{VERSION} │
 │  github.com/AfterRealm/blunt-cake      │
 └─────────────────────────────────────────┘
 ```
@@ -798,172 +262,4 @@ After delivering the roast, add this line:
 4. **The worst finding and verdict should be the most quotable lines.** These are what people screenshot.
 5. **For Batter Battle**, the card shows the winner, the score, and the best roast line from the battle.
 6. **For Roast-a-thon**, the card shows the GPA, file count, valedictorian, dropout, and the report card paragraph.
-
----
-
-## Roast Challenge Process
-
-Pre-built coding challenges judged by Blunt Cake. Like coding katas, but the judge has a personality and zero chill.
-
-### How Challenges Work
-
-1. **User picks "Roast Challenge" mode.** Present the challenge list:
-   ```
-   🎯🔥 **Roast Challenges** — Can you beat the target score?
-
-   1. **Auth Gauntlet** 🔒 — Build a secure auth module. Target: 8/10
-   2. **API Speedrun** ⚡ — Build a REST API endpoint. Target: 7/10
-   3. **The Untangler** 🍝 — Refactor spaghetti code into something edible. Target: 7/10
-   4. **Fort Knox** 🏦 — Secure this leaky endpoint. Target: 9/10
-   5. **Clean Room** 🧹 — Write the cleanest utility function you can. Target: 9/10
-
-   Pick a challenge (or type "community" to see user-submitted challenges)
-   ```
-
-2. **Load the challenge.** Each challenge has:
-   - **Brief** — what to build or fix
-   - **Requirements** — specific things the solution MUST include
-   - **Starter code** (optional) — code to refactor/fix (for refactor challenges)
-   - **Target score** — the score to beat
-   - **Judging criteria** — what Blunt Cake specifically looks for
-
-3. **Present the challenge brief:**
-   ```
-   ## 🎯 Challenge: [name]
-   **Target Score: [X]/10**
-
-   ### The Brief
-   [Description of what to build or fix]
-
-   ### Requirements
-   - [Requirement 1]
-   - [Requirement 2]
-   - [...]
-
-   ### Judging Criteria
-   Blunt Cake will specifically look for:
-   - [Criteria 1]
-   - [Criteria 2]
-
-   [If refactor challenge: ### Starter Code
-   Here's the code to fix:
-   ```language
-   [starter code]
-   ```]
-
-   **Ready? Build your solution, then paste it or point me at the file.**
-   ```
-
-4. **Judge the submission.** Run a Standard Roast on their solution, but with these additions:
-   - Check each requirement explicitly — PASS/FAIL
-   - Compare score against target
-   - If score >= target: **CHALLENGE PASSED** 🏆
-   - If score < target: **CHALLENGE FAILED** — show what to fix and encourage retry
-
-5. **Deliver the verdict:**
-   ```
-   ## 🎯 Challenge Result: [name]
-
-   **Your Score: [X]/10 — Target: [Y]/10**
-   **[PASSED 🏆 / FAILED ❌]**
-
-   ### Requirements Check
-   | # | Requirement | Status |
-   |---|------------|:------:|
-   | 1 | [requirement] | ✅/❌ |
-   [...]
-
-   [Full Standard Roast follows below]
-
-   [If passed:]
-   🏆 **Challenge Complete!** You beat the target by [X] points. [One-line congratulatory roast.]
-
-   [If failed:]
-   ❌ **Not quite.** You needed [Y]/10, you got [X]/10. [What to focus on.] Try again?
-   ```
-
-### Built-In Challenges
-
-#### 1. Auth Gauntlet 🔒
-**Brief:** Build a user authentication module from scratch. Registration, login, token management, and at least one protected route.
-**Target:** 8/10
-**Requirements:**
-- Password hashing (not plaintext)
-- Token-based auth with expiration
-- Input validation on all user inputs
-- Rate limiting on login attempts
-- No hardcoded secrets
-- Proper error messages (no stack trace leaks)
-**Judging criteria:** Security first. Every auth footgun from the OWASP top 10 will be checked.
-
-#### 2. API Speedrun ⚡
-**Brief:** Build a single REST API endpoint that handles CRUD operations for a "notes" resource. Any framework, any language.
-**Target:** 7/10
-**Requirements:**
-- All 4 CRUD operations (create, read, update, delete)
-- Input validation
-- Proper HTTP status codes
-- Error handling that doesn't crash the server
-- At least basic data persistence (even in-memory is fine if done right)
-**Judging criteria:** Correctness and reliability. Does it handle edge cases? Empty input? Missing IDs? Duplicate keys?
-
-#### 3. The Untangler 🍝
-**Brief:** Refactor the provided spaghetti code into something maintainable. Keep the same functionality — just make it not horrifying.
-**Target:** 7/10
-**Starter code:** Use `evals/files/spaghetti.py` — the god function with global state, recursive retries, and string dispatch.
-**Requirements:**
-- Same external behavior as the original
-- No function over 30 lines
-- No global mutable state
-- Meaningful function and variable names
-- Error handling that doesn't recurse infinitely
-**Judging criteria:** Architecture and style. Is it readable? Testable? Would a new developer understand it?
-
-#### 4. Fort Knox 🏦
-**Brief:** You're given a leaky API endpoint. Patch every security hole without changing the core functionality.
-**Target:** 9/10
-**Starter code:** Use `evals/files/bad_auth.js` — the authentication module with hardcoded secrets, query-param admin escalation, and no rate limiting.
-**Requirements:**
-- Fix every CRITICAL and HIGH finding
-- No new functionality — just security hardening
-- All existing routes must still work
-- Add what's missing (rate limiting, token expiration, input validation)
-**Judging criteria:** Security only. The score must come from having zero CRITICAL or HIGH findings.
-
-#### 5. Clean Room 🧹
-**Brief:** Write the cleanest, most well-crafted utility function you can. Pick any common utility (debounce, deep merge, retry with backoff, LRU cache, event emitter — your choice). Make it bulletproof.
-**Target:** 9/10
-**Requirements:**
-- Full JSDoc or docstring with types
-- Edge case handling (empty input, wrong types, boundary values)
-- No dependencies — pure implementation
-- Under 80 lines
-- At least 3 inline comments explaining non-obvious decisions
-**Judging criteria:** Maintainability and correctness. Is this the kind of code you'd find in a well-maintained open-source library?
-
-### Community Challenges
-
-Users can submit their own challenges by adding a markdown file to `challenges/community/`:
-
-```markdown
-# Challenge: [Name]
-**Target:** [X]/10
-**Category:** [security/performance/architecture/style/general]
-
-## Brief
-[What to build or fix]
-
-## Requirements
-- [Requirement 1]
-- [...]
-
-## Judging Criteria
-- [What Blunt Cake should specifically check]
-
-## Starter Code (optional)
-```[language]
-[code to fix/refactor]
-```
-```
-
-Community challenges can be submitted via PR to the Blunt Cake repo.
+7. **`{VERSION}` placeholder** in the footer should be replaced with the version from SKILL.md frontmatter at runtime (e.g., `v2.4.0`). Do not hardcode — read it from the `version:` field in this file.
