@@ -58,12 +58,6 @@ After applying the principles-based rewrite above, ran Anthropic's `skill-creato
 - **4 parallel workers** (ThreadPoolExecutor) on Windows for ~4× speedup
 - **Model:** claude-opus-4-6 (matches the model the user actually runs the skill against)
 
-**Test environment patches** (logged here for transparency and so future maintainers know the system was instrumented):
-- `skill-creator/scripts/run_eval.py` — replaced `select.select()` on stdout pipes with a thread-based reader (Windows compat: `select.select()` only accepts sockets on Windows, causing `WinError 10038` on every query); swapped `ProcessPoolExecutor` → `ThreadPoolExecutor` (Windows multiprocessing+subprocess incompatibility kills parallelism otherwise)
-- Temporarily replaced global `~/.claude/CLAUDE.md` with a 6-line placeholder during the run — the user's normal global instructions tell every Claude session to do a Vox Memori session startup before handling any user prompt, which caused the eval's trigger detection to miss every signal (the first tool call was always `Read MEMORY-LAYER.md`, never the test command)
-- Temporarily moved installed `~/.claude/skills/blunt-cake/` to `~/.claude/blunt-cake.optimization-stash` so the unique-ID test command was the only thing in the available_skills list matching the description (otherwise the model would invoke the real installed blunt-cake skill, which the eval scoring would not recognize as a "trigger" of the test command)
-- Both temporary changes restored after the loop completed
-
 **Results (5 iterations, 11 minutes total wall-clock):**
 
 | Iteration | Train accuracy | Train recall | Test accuracy | Test recall | Per-query test |
