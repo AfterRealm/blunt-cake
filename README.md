@@ -8,8 +8,8 @@ Brutal honesty. Comedic delivery. Actual solutions.
 
 **Option 1: Via AfterRealm marketplace** (recommended)
 ```bash
-claude marketplace add AfterRealm/marketplace
-claude plugin add afterrealm/blunt-cake
+claude plugin marketplace add AfterRealm/marketplace
+claude plugin install blunt-cake@afterrealm
 ```
 
 **Option 2: Copy to skills directory**
