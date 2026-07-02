@@ -1,0 +1,16 @@
+{
+  // Cloudflare Workers config — deploy with: npx wrangler deploy
+  "name": "claude-phone-bridge",
+  "main": "src/index.js",
+  "compatibility_date": "2026-06-01",
+
+  // Non-secret settings. Secrets (BRIDGE_SECRET, PUSHCUT_API_KEY) are set
+  // separately with `npx wrangler secret put <NAME>`.
+  "vars": {
+    // "notification" = free Pushcut tier, you tap the notification once.
+    // "server"       = Pushcut Automation Server, fully hands-free.
+    "PUSHCUT_MODE": "notification",
+    // Name of the notification definition you create in the Pushcut app.
+    "PUSHCUT_NOTIFICATION": "claude"
+  }
+}
