@@ -11,6 +11,6 @@
     // "server"       = Pushcut Automation Server, fully hands-free.
     "PUSHCUT_MODE": "notification",
     // Name of the notification definition you create in the Pushcut app.
-    "PUSHCUT_NOTIFICATION": "claude"
+    "PUSHCUT_NOTIFICATION": "Claude"
   }
 }
