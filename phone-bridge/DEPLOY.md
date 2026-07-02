@@ -53,5 +53,5 @@ curl -sS -X POST "$URL" -H 'Content-Type: application/json' \
 
 Give them the full connector URL and point them at README.md Part 3
 (add custom connector in the Claude app) and Part 2 step 3 (create the
-`Play Music` and `Open App` shortcuts). Remind them to rotate the
+`Play My Music` and `Open App` shortcuts). Remind them to rotate the
 Cloudflare token afterward, since it passed through chat.

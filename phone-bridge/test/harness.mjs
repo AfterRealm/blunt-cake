@@ -117,7 +117,7 @@ async function rpc(body, { raw = false } = {}) {
   const call = pushcutCalls.at(-1);
   assert.equal(call.url, "https://api.pushcut.io/v1/notifications/claude");
   assert.equal(call.init.headers["API-Key"], "pc_test_key");
-  assert.equal(call.body.defaultAction.shortcut, "Play Music");
+  assert.equal(call.body.defaultAction.shortcut, "Play My Music");
   assert.equal(call.body.defaultAction.input, "chill jazz");
   console.log("ok  play_music ->", r.result.content[0].text);
 }
@@ -179,7 +179,7 @@ async function rpc(body, { raw = false } = {}) {
   assert.equal(r.result.isError, false);
   const call = pushcutCalls.at(-1);
   assert.equal(call.url, "https://api.pushcut.io/v1/execute");
-  assert.deepEqual(call.body, { shortcut: "Play Music", input: "rock" });
+  assert.deepEqual(call.body, { shortcut: "Play My Music", input: "rock" });
   console.log("ok  server mode -> /execute:", r.result.content[0].text);
 }
 

@@ -153,7 +153,7 @@ async function callTool(env, name, args = {}) {
     case "play_music": {
       const query = (args.query ?? "").trim();
       return runOnPhone(env, {
-        shortcut: "Play Music",
+        shortcut: "Play My Music",
         input: query,
         text: query ? `Tap to play: ${query}` : "Tap to open Amazon Music",
       });

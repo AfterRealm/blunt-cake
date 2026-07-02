@@ -92,7 +92,7 @@ shortcut to run each time.
 
 Open Apple's **Shortcuts** app and create these two. Names must match exactly.
 
-**Shortcut: `Play Music`**
+**Shortcut: `Play My Music`**
 
 1. Action: **Get text from Shortcut Input** (variable: `Query`)
 2. Action: **If** → `Query` → *has any value*
@@ -147,7 +147,7 @@ Music opens playing your search. 🎵
 
 | Tool | What it does |
 |---|---|
-| `play_music` | Runs the `Play Music` shortcut with your query |
+| `play_music` | Runs the `Play My Music` shortcut with your query |
 | `open_app` | Runs the `Open App` shortcut with an app name |
 | `run_shortcut` | Runs **any** shortcut by name, with optional text input |
 | `notify_phone` | Just pings your phone with a message |
@@ -174,5 +174,5 @@ To skip the one tap entirely:
   named exactly `claude`, and the API key is correct
   (`npx wrangler secret put PUSHCUT_API_KEY` again to fix).
 - **Notification tap does nothing** — the shortcut name sent must exactly
-  match a shortcut on the phone (`Play Music`, `Open App`).
+  match a shortcut on the phone (`Play My Music`, `Open App`).
 - **Run the local test suite:** `npm test`
