@@ -265,4 +265,4 @@ After delivering the roast, add this line:
 4. **The worst finding and verdict should be the most quotable lines.** These are what people screenshot.
 5. **For Batter Battle**, the card shows the winner, the score, and the best roast line from the battle.
 6. **For Roast-a-thon**, the card shows the GPA, file count, valedictorian, dropout, and the report card paragraph.
-7. **`{VERSION}` placeholder** in the footer should be replaced with the version from SKILL.md frontmatter at runtime (e.g., `v2.4.0`). Do not hardcode — read it from the `version:` field in this file.
+7. **`{VERSION}` placeholder** in the footer should be replaced with the version from SKILL.md frontmatter at runtime (e.g., `v2.4.0`). Do not hardcode — read it from the `metadata.version` field in this file's frontmatter.
