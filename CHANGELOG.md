@@ -89,7 +89,7 @@ After applying the principles-based rewrite above, ran Anthropic's `skill-creato
 **Honest caveats:**
 - 5/8 on test isn't a great absolute score — it means the loop's best variant still misses ~75% of the should-trigger queries. That's a ceiling on what description-only optimization can do; the queries themselves are intentionally hard (realistic, casual, no explicit "roast" keyword). A perfect description would still struggle with queries like "does this regex suck" where the user's intent is implicit.
 - The improvement is real (+12 points test accuracy, 0% → 25% recall) but modest in absolute terms.
-- A future v2.4.1 could expand the eval set to ~50 queries and re-run for tighter signal — this run was the minimum viable optimization following the guide's recommended ~20-query design.
+- A future release could expand the eval set to ~50 queries and re-run for tighter signal — this run was the minimum viable optimization following the guide's recommended ~20-query design.
 
 ### Polish Pass — Final Review Findings
 Five additional fixes from the pre-ship review of the v2.4.0 refactor:
