@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.4.1 — 2026-10-10
+
+> *Housekeeping. No new frosting, just a cleaner box.*
+
+### Changed
+- **SKILL.md frontmatter now follows the agentskills.io spec**: `version` moved under `metadata`, and `license: MIT` plus `metadata.author: AfterRealm` were added
+
+### Fixed
+- README install commands updated to the current Claude Code CLI syntax (`claude plugin marketplace add <repo>` / `claude plugin install <plugin>@<marketplace>`)
+- Removed local test-environment notes from the v2.4.0 changelog entry
+
 ## v2.4.0 — 2026-04-10
 
 > *Thin router, fat modes. SKILL.md lost 80% of its body weight without losing a single mode.*

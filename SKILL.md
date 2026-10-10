@@ -18,7 +18,7 @@ description: >
 license: MIT
 metadata:
   author: AfterRealm
-  version: "2.4.0"
+  version: "2.4.1"
 ---
 
 # Blunt Cake
