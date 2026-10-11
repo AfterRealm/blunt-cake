@@ -47,7 +47,7 @@ def main():
 
     if version_tuple(latest) > version_tuple(CURRENT_VERSION):
         print(f"Blunt Cake update available: v{CURRENT_VERSION} -> v{latest}")
-        print(f"Update: claude plugin update afterrealm/blunt-cake")
+        print("Update: claude plugin update blunt-cake")
     # If up to date, print nothing
 
 
