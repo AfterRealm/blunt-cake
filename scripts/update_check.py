@@ -11,7 +11,7 @@ from pathlib import Path
 
 REPO = "AfterRealm/blunt-cake"
 GITHUB_API = f"https://api.github.com/repos/{REPO}/releases/latest"
-CURRENT_VERSION = "2.4.1"
+CURRENT_VERSION = "2.4.2"
 
 
 def get_latest_version():
@@ -47,7 +47,7 @@ def main():
 
     if version_tuple(latest) > version_tuple(CURRENT_VERSION):
         print(f"Blunt Cake update available: v{CURRENT_VERSION} -> v{latest}")
-        print(f"Update: claude plugin update afterrealm/blunt-cake")
+        print("Update: claude plugin update blunt-cake")
     # If up to date, print nothing
 
 

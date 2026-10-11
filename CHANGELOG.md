@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.4.2 — 2026-10-11
+
+> *The oven timer finally points at the right oven.*
+
+### Fixed
+- **The update notice now prints a command that works.** It used to say `claude plugin update afterrealm/blunt-cake`, which Claude Code rejects with "not installed". It now says `claude plugin update blunt-cake`.
+
 ## v2.4.1 — 2026-10-10
 
 > *Housekeeping. No new frosting, just a cleaner box.*
